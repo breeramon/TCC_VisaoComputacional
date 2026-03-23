@@ -1,0 +1,27 @@
+# ==========================================
+# .gitignore - TCC Visão Computacional
+# ==========================================
+
+# Ambientes Virtuais (Nunca subir para o GitHub)
+.venv/
+venv/
+env/
+
+# Arquivos de Cache do Python
+__pycache__/
+*.pyc
+
+# Modelos Pesados de IA (YOLO)
+*.pt
+*.onnx
+*.tflite
+modelos/yolo_pt/*
+modelos/yolo_tflite/*
+
+# Imagens e Vídeos de Teste (Evita lotar o repositório)
+dados/brutos/*
+dados/anotados/*
+
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db

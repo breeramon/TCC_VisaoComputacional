@@ -1,0 +1,15 @@
+# ==========================================
+# Dependências - TCC Navegação Indoor (IA)
+# ==========================================
+
+# 1. Captura de Vídeo e Processamento de Imagem
+opencv-python>=4.8.0  # Biblioteca OpenCV para acessar a câmera e tratar os frames
+
+# 2. Inteligência Artificial e Detecção de Objetos
+ultralytics>=8.0.0    # Framework oficial que contém o modelo YOLOv8
+
+# 3. Síntese de Voz (Text-to-Speech)
+pyttsx3>=2.90         # Biblioteca para gerar os comandos de voz de forma offline 
+
+# 4. Operações Matemáticas (Auxiliar)
+numpy>=1.24.0         # Base para manipulação de matrizes e arrays de imagens
