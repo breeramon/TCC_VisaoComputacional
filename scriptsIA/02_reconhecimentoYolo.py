@@ -2,10 +2,11 @@ import cv2
 from ultralytics import YOLO
 
 def reconhecer_objetos():
-    print("Carregando o modelo YOLOv8...")
     # Carrega o modelo 'small' (yolov8s.pt), que é o mais leve e rápido.
     # Na primeira vez que você rodar, ele vai baixar esse arquivo automaticamente (cerca de 6MB).
-    modelo = YOLO("yolov8s.pt") 
+    print("Carregando o modelo YOLOv8 personalizado...")
+    # Caminho atualizado para o seu modelo treinado (v13)
+    modelo = YOLO("runs/detect/modelos/treino_tcc_v13/weights/best.pt")
 
     # Inicia a captura de vídeo. 
     # Mude para 1 ou 2 caso o Iriun Webcam não seja reconhecido no índice 0.
