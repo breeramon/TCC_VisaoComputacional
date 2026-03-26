@@ -1,44 +1,44 @@
 import cv2
+import time
 from ultralytics import YOLO
 
 def reconhecer_objetos():
-    # Carrega o modelo 'small' (yolov8s.pt), que é o mais leve e rápido.
-    # Na primeira vez que você rodar, ele vai baixar esse arquivo automaticamente (cerca de 6MB).
     print("Carregando o modelo YOLOv8 personalizado...")
-    # Caminho atualizado para o seu modelo treinado (v13)
     modelo = YOLO("runs/detect/modelos/treino_tcc_v13/weights/best.pt")
 
-    # Inicia a captura de vídeo. 
-    # Mude para 1 ou 2 caso o Iriun Webcam não seja reconhecido no índice 0.
     cap = cv2.VideoCapture(0)
 
     if not cap.isOpened():
         print("Erro: Não foi possível acessar a câmera do Iriun.")
         return
 
-    print("IA iniciada! Aponte a câmera para objetos (pessoas, cadeiras, celulares, etc).")
-    print("Pressione a tecla 'q' para sair.")
+    print("IA iniciada! Pressione 'q' para sair.")
+
+    tempo_anterior = time.time()
 
     while True:
         sucesso, frame = cap.read()
-        
+
         if not sucesso:
             print("Falha ao capturar o frame.")
             break
 
-        # Passa o frame pelo modelo YOLOv8
-        # stream=True otimiza o processamento contínuo de vídeo
-        resultados = modelo(frame, stream=True)
+        # Valor padrão para frames sem nenhuma detecção (evita NameError)
+        frame_anotado = frame
 
-        # Para cada detecção feita no frame atual
+        resultados = modelo(frame, conf=0.6, stream=True)
+
         for resultado in resultados:
-            # A função plot() automaticamente desenha as caixas e os nomes dos objetos
             frame_anotado = resultado.plot()
 
-        # Mostra o resultado na tela
-        cv2.imshow("Visão Computacional - YOLOv8 (TCC Breno)", frame_anotado)
+        # Calcula e exibe o FPS no título da janela
+        tempo_atual = time.time()
+        fps = 1.0 / (tempo_atual - tempo_anterior)
+        tempo_anterior = tempo_atual
 
-        # Aguarda a tecla 'q' para encerrar
+        cv2.imshow("YOLOv8 TCC Breno", frame_anotado)
+        cv2.setWindowTitle("YOLOv8 TCC Breno", f"YOLOv8 TCC Breno | FPS: {fps:.1f}")
+
         if cv2.waitKey(1) & 0xFF == ord('q'):
             print("Encerrando a Inteligência Artificial...")
             break
