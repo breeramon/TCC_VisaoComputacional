@@ -18,6 +18,12 @@ __pycache__/
 modelos/yolo_pt/*
 modelos/yolo_tflite/*
 
+# Flutter
+app_mobile/.dart_tool/
+app_mobile/build/
+app_mobile/.flutter-plugins
+app_mobile/.flutter-plugins-dependencies
+
 # Arquivos gerados pela exportação TFLite
 *_saved_model/                          # Pasta TensorFlow SavedModel (~107MB), intermediário da exportação
 calibration_image_sample_data_*.npy     # Dados de calibração baixados automaticamente pelo Ultralytics

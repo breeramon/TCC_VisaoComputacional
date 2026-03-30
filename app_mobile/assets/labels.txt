@@ -1,0 +1,17 @@
+Acessibilidade
+Porta
+Placa de elevador
+Elevador
+Sinalização de saída
+Alarme de incêndio
+Extintor de incêndio
+Maçaneta
+Seta esquerda
+Banheiro masculino
+Pessoa
+Maçaneta de empurrar
+Seta direita
+Placa de escada
+Lixeira
+Bebedouro
+Banheiro feminino
