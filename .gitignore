@@ -18,6 +18,11 @@ __pycache__/
 modelos/yolo_pt/*
 modelos/yolo_tflite/*
 
+# Arquivos gerados pela exportação TFLite
+*_saved_model/                          # Pasta TensorFlow SavedModel (~107MB), intermediário da exportação
+calibration_image_sample_data_*.npy     # Dados de calibração baixados automaticamente pelo Ultralytics
+calibration_image_sample_data_*.npy.zip
+
 # Imagens e Vídeos de Teste (Evita lotar o repositório)
 dados/brutos/*
 dados/anotados/*

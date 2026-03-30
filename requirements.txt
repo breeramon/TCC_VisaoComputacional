@@ -7,9 +7,21 @@ opencv-python>=4.8.0  # Biblioteca OpenCV para acessar a câmera e tratar os fra
 
 # 2. Inteligência Artificial e Detecção de Objetos
 ultralytics>=8.0.0    # Framework oficial que contém o modelo YOLOv8
+torch>=2.0.0          # Backend de deep learning utilizado pelo YOLOv8
 
 # 3. Síntese de Voz (Text-to-Speech)
-pyttsx3>=2.90         # Biblioteca para gerar os comandos de voz de forma offline 
+# Nota: o assistente (04_assistente_completo.py) usa o TTS nativo do Windows via subprocess.
+# pyttsx3 é mantido aqui apenas para o script de teste (03_teste_voz_pyttsx3.py).
+pyttsx3>=2.90
 
 # 4. Operações Matemáticas (Auxiliar)
 numpy>=1.24.0         # Base para manipulação de matrizes e arrays de imagens
+
+# 5. Exportação do modelo para TFLite (Android)
+# Necessário para rodar o script 05_exportar_tflite.py
+tensorflow>=2.20.0    # Motor de conversão para o formato TFLite
+onnx>=1.12.0,<2.0.0  # Formato intermediário usado na pipeline de exportação
+onnxruntime>=1.16.0  # Execução de modelos ONNX (utilizado pelo Ultralytics na exportação)
+onnxslim>=0.1.71     # Otimização do modelo ONNX antes da conversão
+onnx2tf>=1.26.3      # Converte ONNX → TensorFlow SavedModel → TFLite
+ai-edge-litert>=1.2.0 # Runtime TFLite do Google (substitui tflite-runtime)

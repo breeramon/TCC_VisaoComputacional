@@ -1,7 +1,123 @@
-*PROJETO DE TCC - VISÃO COMPUTACIONAL COM ACESSIBILIDADE*
+# Sistema de Navegação Indoor por Voz para Pessoas com Deficiência Visual
 
-projeto mais voltado para reconhecimento de objetos que tem em universidades / escolas.
+**TCC — Ciência da Computação | Universidade Tiradentes (UNIT)**
+Autor: Breno Ramon Santana dos Santos
+Orientador: Prof. Felipe dos Anjos
 
-foi usado para o treinamento da IA esses DATASETS
-  - indoor-navigation Computer Vision Dataset : https://universe.roboflow.com/akhash/indoor-navigation-xs4of
-  - outro em pesquisa ainda.
+---
+
+## Sobre o Projeto
+
+Aplicativo Android baseado em Inteligência Artificial para auxiliar pessoas cegas e pessoas com baixa visão a se locomover de forma autônoma em ambientes internos. O sistema utiliza a câmera do smartphone para capturar o ambiente em tempo real, detecta objetos relevantes à navegação com YOLOv8 e fornece instruções de voz em português brasileiro.
+
+O estudo de caso vai ser realizado no campus Farolândia da Universidade Tiradentes, em Aracaju/SE.
+
+---
+
+## Tecnologias Utilizadas
+
+| Componente | Tecnologia |
+|---|---|
+| Linguagem | Python 3.x |
+| Detecção de objetos | YOLOv8 (Ultralytics) |
+| Inferência no Android | TensorFlow Lite |
+| Processamento de frames | OpenCV |
+| Síntese de voz (protótipo PC) | Windows TTS via subprocess |
+| App mobile | Flutter |
+
+---
+
+## Classes de Objetos Detectados
+
+- Porta
+- Elevador
+- Extintor de incêndio
+- Lixeira
+- Bebedouro
+- Pessoa
+- Placa de escada
+- Sinalização de saída
+- mais objetos serão adicionados...
+
+---
+
+## Datasets Utilizados no Treinamento
+
+- **indoor-navigation Computer Vision Dataset** — [Roboflow Universe](https://universe.roboflow.com/akhash/indoor-navigation-xs4of)
+- Outro dataset em pesquisa.
+
+---
+
+## Estrutura do Projeto
+
+```
+TCC_VisaoComputacional/
+│
+├── scriptsIA/
+│   ├── 01_testeCamera.py          # Diagnóstico da câmera
+│   ├── 02_reconhecimentoYolo.py   # Visualização das detecções com FPS
+│   ├── 03_treinamento_yolo.py     # Fine-tuning do YOLOv8
+│   ├── 04_assistente_completo.py  # Assistente de voz com reconhecimento em tempo real
+│   └── 05_exportar_tflite.py      # Exportação do modelo para Android (.tflite)
+│
+├── dados/
+│   ├── brutos/                    # Imagens coletadas na UNIT (ignoradas pelo .gitignore)
+│   └── anotados/                  # Dataset rotulado para treino (ignorado pelo .gitignore)
+│
+├── runs/                          # Resultados dos treinamentos (pesos, métricas, gráficos)
+│   └── detect/modelos/
+│       └── treino_tcc_v13/        # Melhor modelo treinado (mAP50: 82.3%)
+│
+├── exports/                       # Modelos exportados para uso no Flutter
+│   └── best_float32.tflite        # Modelo TFLite gerado (42.7 MB) — ignorado pelo .gitignore
+│
+├── requirements.txt               # Dependências Python
+└── .gitignore
+```
+
+---
+
+## Como Executar o Protótipo (PC)
+
+### 1. Instalar dependências
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Testar a câmera
+```bash
+python scriptsIA/01_testeCamera.py
+```
+
+### 3. Rodar o reconhecimento visual
+```bash
+python scriptsIA/02_reconhecimentoYolo.py
+```
+
+### 4. Rodar o assistente de voz completo
+```bash
+python scriptsIA/04_assistente_completo.py
+```
+
+### 5. Exportar o modelo para Android
+```bash
+python scriptsIA/05_exportar_tflite.py
+```
+
+> **Nota:** Os scripts de PC utilizam o [Iriun Webcam](https://iriun.com/) para espelhar a câmera do celular Android no computador durante o desenvolvimento, visto que alguns PC não possuem câmera ou webcam.
+
+---
+
+## Modelo Treinado
+
+O modelo atual (`treino_tcc_v13`) foi treinado com fine-tuning sobre o YOLOv8s com as seguintes métricas:
+
+| Métrica | Valor |
+|---|---|
+| mAP50 | 82.3% |
+| mAP50-95 | 57.7% |
+| Precisão | 82.2% |
+| Recall | 77.5% |
+| Épocas | 25 (early stopping) |
+
+O arquivo `.tflite` gerado não está versionado no repositório devido ao tamanho (42.7 MB). Para obtê-lo, execute o script `05_exportar_tflite.py` com o modelo `.pt` disponível em `runs/detect/modelos/treino_tcc_v13/weights/best.pt`.
