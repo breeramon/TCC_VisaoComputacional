@@ -121,3 +121,63 @@ O modelo atual (`treino_tcc_v13`) foi treinado com fine-tuning sobre o YOLOv8s c
 | Épocas | 25 (early stopping) |
 
 O arquivo `.tflite` gerado não está versionado no repositório devido ao tamanho (42.7 MB). Para obtê-lo, execute o script `05_exportar_tflite.py` com o modelo `.pt` disponível em `runs/detect/modelos/treino_tcc_v13/weights/best.pt`.
+
+---
+
+## App Android (Flutter)
+
+O aplicativo mobile foi desenvolvido em Flutter para Android, integrando inferência TFLite em tempo real com síntese de voz nativa (Android TTS) em português brasileiro.
+
+### Estrutura do App
+
+```
+app_mobile/
+├── lib/
+│   ├── main.dart                      # Ponto de entrada — gerencia permissão de câmera
+│   ├── detector/
+│   │   └── object_detector.dart       # Pipeline TFLite: captura → inferência → NMS
+│   ├── tts/
+│   │   └── tts_service.dart           # Lógica de avisos de voz com prioridade e buffer
+│   └── screens/
+│       └── camera_screen.dart         # UI: preview da câmera + overlay das detecções
+│
+├── assets/
+│   ├── labels.txt                     # 17 classes em português (ordem do modelo)
+│   └── model/
+│       └── best_float32.tflite        # Modelo exportado (copiar de exports/)
+│
+└── android/
+    └── app/
+        ├── build.gradle.kts           # Configurações de compilação Android
+        └── src/main/AndroidManifest.xml
+```
+
+### Pré-requisitos
+
+- [Flutter SDK](https://flutter.dev/docs/get-started/install) instalado e no PATH
+- Android SDK com API 31 ou superior
+- Celular Android com **Depuração USB** ativada (Opções do desenvolvedor)
+- Modelo exportado: executar `05_exportar_tflite.py` e copiar o `.tflite` para `app_mobile/assets/model/`
+
+### Como Compilar e Instalar
+
+```bash
+# 1. Copiar o modelo exportado para os assets
+cp exports/best_float32.tflite app_mobile/assets/model/best_float32.tflite
+
+# 2. Instalar dependências Flutter
+cd app_mobile
+flutter pub get
+
+# 3. Compilar e instalar no celular conectado via USB
+flutter run
+```
+
+### Funcionalidades do App
+
+- Detecção de objetos em tempo real via câmera traseira
+- Sistema de prioridade: Pessoa (alta) → pontos de navegação (média) → referências (baixa)
+- Posição espacial do objeto: esquerda, frente ou direita
+- Alerta de proximidade: aviso adicional quando objeto ocupa >15% do frame
+- Buffer de confirmação: objeto precisa ser detectado por tempo mínimo antes do aviso
+- Síntese de voz em português brasileiro (Android TTS nativo)
