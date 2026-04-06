@@ -14,7 +14,6 @@ __pycache__/
 # Modelos Pesados de IA (YOLO)
 *.pt
 *.onnx
-*.tflite
 modelos/yolo_pt/*
 modelos/yolo_tflite/*
 
