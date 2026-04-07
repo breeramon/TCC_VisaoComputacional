@@ -1,17 +1,17 @@
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:ultralytics_yolo/ultralytics_yolo.dart';
 import '../detector/object_detector.dart';
 import '../tts/tts_service.dart';
 
 // Cores por prioridade (espelha a lógica do script Python)
-const _corAlta   = Color(0xFFFF3B30); // vermelho  — Pessoa
-const _corMedia  = Color(0xFFFF9500); // laranja   — Portas, Elevadores, Placas
-const _corBaixa  = Color(0xFF34C759); // verde     — Referências
+const _corAlta  = Color(0xFFFF3B30); // vermelho — Pessoa
+const _corMedia = Color(0xFFFF9500); // laranja  — Portas, Elevadores, Placas
+const _corBaixa = Color(0xFF34C759); // verde    — Referências
 
-const _classesAlta  = {'Pessoa'};
+const _classesAlta  = {'person'};
 const _classesMedia = {
-  'Porta', 'Elevador', 'Placa de elevador', 'Placa de escada',
-  'Sinalização de saída', 'Alarme de incêndio',
+  'door', 'elevator', 'elevator sign', 'stair sign',
+  'exit sign', 'fire alarm',
 };
 
 Color _corParaClasse(String className) {
@@ -20,113 +20,88 @@ Color _corParaClasse(String className) {
   return _corBaixa;
 }
 
+const _useGpu = true;
+
 class CameraScreen extends StatefulWidget {
-  final List<CameraDescription> cameras;
-  const CameraScreen({super.key, required this.cameras});
+  const CameraScreen({super.key});
 
   @override
   State<CameraScreen> createState() => _CameraScreenState();
 }
 
-class _CameraScreenState extends State<CameraScreen>
-    with WidgetsBindingObserver {
-  late CameraController _controller;
-  final ObjectDetector _detector = ObjectDetector();
+class _CameraScreenState extends State<CameraScreen> {
   final TtsService _tts = TtsService();
 
-  List<Detection> _detections = [];
-  bool _processing = false;
-  bool _ready = false;
-  String? _erro;
+  List<YOLOResult> _results = [];
+  int _fps = 0;
+  int _frameCount = 0;
+  DateTime _fpsTimer = DateTime.now();
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _inicializar();
+    _tts.init();
   }
 
-  Future<void> _inicializar() async {
-    try {
-      await _detector.load();
-      await _tts.init();
-
-      _controller = CameraController(
-        widget.cameras.first,
-        ResolutionPreset.medium, // 720p — equilíbrio entre qualidade e performance
-        enableAudio: false,
-        imageFormatGroup: ImageFormatGroup.yuv420,
-      );
-
-      await _controller.initialize();
-
-      _controller.startImageStream(_onFrame);
-
-      if (mounted) setState(() => _ready = true);
-    } catch (e) {
-      if (mounted) setState(() => _erro = e.toString());
+  void _onResults(List<YOLOResult> results) {
+    // Calcula FPS
+    _frameCount++;
+    final agora = DateTime.now();
+    final diff = agora.difference(_fpsTimer).inMilliseconds;
+    if (diff >= 1000) {
+      _fps = (_frameCount * 1000 / diff).round();
+      _frameCount = 0;
+      _fpsTimer = agora;
     }
-  }
 
-  void _onFrame(CameraImage image) {
-    // Pula o frame se ainda estiver processando o anterior
-    if (_processing || !_detector.isLoaded) return;
-    _processing = true;
+    // Converte YOLOResult → Detection para o TtsService
+    // normalizedBox contém coordenadas [0,1] relativas ao frame
+    final detections = results.map((r) => Detection(
+      classIndex: r.classIndex,
+      className: r.className,
+      confidence: r.confidence,
+      x1: r.normalizedBox.left,
+      y1: r.normalizedBox.top,
+      x2: r.normalizedBox.right,
+      y2: r.normalizedBox.bottom,
+    )).toList();
 
-    // Roda a inferência fora da UI thread
-    Future(() => _detector.detect(image)).then((dets) {
-      if (!mounted) return;
-      _tts.processDetections(dets);
-      setState(() => _detections = dets);
-      _processing = false;
-    }).catchError((Object _) {
-      _processing = false;
-    });
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!_controller.value.isInitialized) return;
-    if (state == AppLifecycleState.inactive) {
-      _controller.stopImageStream();
-    } else if (state == AppLifecycleState.resumed) {
-      _controller.startImageStream(_onFrame);
-    }
+    _tts.processDetections(detections);
+    if (mounted) setState(() => _results = results);
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _controller.dispose();
-    _detector.dispose();
     _tts.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_erro != null) return _buildErro();
-    if (!_ready) return _buildCarregando();
-
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Preview da câmera
-          CameraPreview(_controller),
+          // YOLOView: câmera + inferência nativa com GPU automático
+          YOLOView(
+            modelPath: 'best_int8',
+            task: YOLOTask.detect,
+            confidenceThreshold: 0.6,
+            iouThreshold: 0.45,
+            useGpu: _useGpu,
+            showOverlays: false,   // usa nosso overlay customizado abaixo
+            showNativeUI: false,
+            onResult: _onResults,
+          ),
 
-          // Caixas de detecção sobrepostas
-          if (_detections.isNotEmpty)
+          // Overlay com bounding boxes coloridas por prioridade
+          if (_results.isNotEmpty)
             CustomPaint(
-              painter: _DetectionPainter(
-                detections: _detections,
-                previewSize: _controller.value.previewSize!,
-                screenSize: MediaQuery.of(context).size,
-              ),
+              painter: _DetectionPainter(results: _results),
             ),
 
-          // Indicador de status no topo
+          // Barra de status no topo
           _buildStatusBar(),
         ],
       ),
@@ -146,90 +121,58 @@ class _CameraScreenState extends State<CameraScreen>
         ),
         child: Row(
           children: [
-            const Icon(Icons.fiber_manual_record, color: Colors.greenAccent, size: 10),
+            const Icon(Icons.fiber_manual_record,
+                color: Colors.greenAccent, size: 10),
             const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                _results.isEmpty
+                    ? 'Nenhum objeto detectado'
+                    : '${_results.length} objeto(s) detectado(s)',
+                style: const TextStyle(color: Colors.white, fontSize: 11),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             Text(
-              _detections.isEmpty
-                  ? 'Nenhum objeto detectado'
-                  : '${_detections.length} objeto(s) detectado(s)',
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              '${_useGpu ? "GPU" : "CPU"} · $_fps fps',
+              style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
           ],
         ),
       ),
     );
   }
-
-  Widget _buildCarregando() => const Scaffold(
-        backgroundColor: Colors.black,
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(color: Colors.white),
-              SizedBox(height: 16),
-              Text('Carregando modelo de IA...',
-                  style: TextStyle(color: Colors.white70)),
-            ],
-          ),
-        ),
-      );
-
-  Widget _buildErro() => Scaffold(
-        backgroundColor: Colors.black,
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              'Erro ao inicializar a câmera:\n\n$_erro',
-              style: const TextStyle(color: Colors.redAccent),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      );
 }
 
 // ---------------------------------------------------------------------------
-// Painter das bounding boxes
+// Painter das bounding boxes com cores por prioridade
 // ---------------------------------------------------------------------------
 
 class _DetectionPainter extends CustomPainter {
-  final List<Detection> detections;
-  final Size previewSize;
-  final Size screenSize;
+  final List<YOLOResult> results;
 
-  const _DetectionPainter({
-    required this.detections,
-    required this.previewSize,
-    required this.screenSize,
-  });
+  const _DetectionPainter({required this.results});
 
   @override
   void paint(Canvas canvas, Size size) {
-    for (final det in detections) {
-      final cor = _corParaClasse(det.className);
+    for (final r in results) {
+      final cor = _corParaClasse(r.className);
       final paint = Paint()
         ..color = cor
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.5;
 
-      // Converte coordenadas normalizadas [0,1] para pixels na tela
-      // A câmera pode estar rodada 90°, então invertemos w/h
-      final scaleX = size.width / previewSize.height;
-      final scaleY = size.height / previewSize.width;
-
+      // normalizedBox em [0,1] → converte para pixels da tela
       final rect = Rect.fromLTRB(
-        det.x1 * previewSize.height * scaleX,
-        det.y1 * previewSize.width * scaleY,
-        det.x2 * previewSize.height * scaleX,
-        det.y2 * previewSize.width * scaleY,
+        r.normalizedBox.left   * size.width,
+        r.normalizedBox.top    * size.height,
+        r.normalizedBox.right  * size.width,
+        r.normalizedBox.bottom * size.height,
       );
 
       canvas.drawRect(rect, paint);
 
-      // Label com fundo colorido
-      final label = '${det.className} ${(det.confidence * 100).toStringAsFixed(0)}%';
+      final label = '${r.className} ${(r.confidence * 100).toStringAsFixed(0)}%';
       final tp = TextPainter(
         text: TextSpan(
           text: ' $label ',
@@ -248,5 +191,5 @@ class _DetectionPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_DetectionPainter old) => old.detections != detections;
+  bool shouldRepaint(_DetectionPainter old) => old.results != results;
 }

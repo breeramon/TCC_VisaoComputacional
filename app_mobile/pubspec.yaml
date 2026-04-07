@@ -33,11 +33,8 @@ dependencies:
 
   cupertino_icons: ^1.0.8
 
-  # Acesso à câmera do dispositivo
-  camera: ^0.11.0
-
-  # Inferência do modelo YOLOv8 exportado (.tflite)
-  tflite_flutter: ^0.11.0
+  # Câmera + inferência YOLO nativa com suporte a GPU
+  ultralytics_yolo: ^0.2.0
 
   # Síntese de voz nativa Android (Text-to-Speech)
   flutter_tts: ^4.0.2

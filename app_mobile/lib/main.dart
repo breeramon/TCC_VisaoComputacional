@@ -1,4 +1,3 @@
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -7,26 +6,19 @@ import 'screens/camera_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Força orientação retrato (câmera apontada para frente)
+  // Força orientação retrato
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-  // Solicita permissão de câmera antes de qualquer coisa
+  // Solicita permissão de câmera
   final status = await Permission.camera.request();
 
-  final cameras = status.isGranted ? await availableCameras() : <CameraDescription>[];
-
-  runApp(NavIndoorApp(cameras: cameras, cameraPermitida: status.isGranted));
+  runApp(NavIndoorApp(cameraPermitida: status.isGranted));
 }
 
 class NavIndoorApp extends StatelessWidget {
-  final List<CameraDescription> cameras;
   final bool cameraPermitida;
 
-  const NavIndoorApp({
-    super.key,
-    required this.cameras,
-    required this.cameraPermitida,
-  });
+  const NavIndoorApp({super.key, required this.cameraPermitida});
 
   @override
   Widget build(BuildContext context) {
@@ -38,9 +30,7 @@ class NavIndoorApp extends StatelessWidget {
           primary: Colors.greenAccent.shade400,
         ),
       ),
-      home: cameraPermitida && cameras.isNotEmpty
-          ? CameraScreen(cameras: cameras)
-          : const _SemPermissaoScreen(),
+      home: cameraPermitida ? const CameraScreen() : const _SemPermissaoScreen(),
     );
   }
 }
