@@ -20,26 +20,39 @@ O estudo de caso vai ser realizado no campus Farolândia da Universidade Tiraden
 
 | Componente | Tecnologia |
 |---|---|
-| Linguagem | Python 3.x |
-| Detecção de objetos | YOLOv8 (Ultralytics) |
-| Inferência no Android | TensorFlow Lite |
-| Processamento de frames | OpenCV |
+| Linguagem (scripts IA) | Python 3.x |
+| Detecção de objetos | YOLOv8s (Ultralytics) |
+| Inferência no Android | ultralytics_yolo (nativo C++, GPU via TFLite) |
+| Síntese de voz (app) | flutter_tts (Android TTS nativo) |
 | Síntese de voz (protótipo PC) | Windows TTS via subprocess |
-| App mobile | Flutter |
+| App mobile | Flutter (Android) |
+| Exportação do modelo | TensorFlow Lite — int8 e float16 |
 
 ---
 
 ## Classes de Objetos Detectados
 
-- Porta
-- Elevador
-- Extintor de incêndio
-- Lixeira
-- Bebedouro
-- Pessoa
-- Placa de escada
-- Sinalização de saída
-- mais objetos serão adicionados...
+O modelo detecta 17 classes. Os nomes abaixo são os identificadores internos do modelo (inglês) seguidos do que é anunciado em voz pelo app (português):
+
+| Classe no modelo | Anúncio em voz | Prioridade |
+|---|---|---|
+| `person` | Pessoa | Alta |
+| `door` | Porta | Média |
+| `elevator` | Elevador | Média |
+| `elevator sign` | Placa de elevador | Média |
+| `stair sign` | Placa de escada | Média |
+| `exit sign` | Sinalização de saída | Média |
+| `fire alarm` | Alarme de incêndio | Média |
+| `fire extinguisher` | Extintor de incêndio | Baixa |
+| `trash can` | Lixeira | Baixa |
+| `water dispenser` | Bebedouro | Baixa |
+| `handle` | Maçaneta | Baixa |
+| `push handle` | Maçaneta de empurrar | Baixa |
+| `left arrow` | Seta esquerda | Baixa |
+| `right arrow` | Seta direita | Baixa |
+| `men-s washroom` | Banheiro masculino | Baixa |
+| `women-s washroom` | Banheiro feminino | Baixa |
+| `accessibility` | Acessibilidade | Baixa |
 
 ---
 
@@ -60,7 +73,7 @@ TCC_VisaoComputacional/
 │   ├── 02_reconhecimentoYolo.py   # Visualização das detecções com FPS
 │   ├── 03_treinamento_yolo.py     # Fine-tuning do YOLOv8
 │   ├── 04_assistente_completo.py  # Assistente de voz com reconhecimento em tempo real
-│   └── 05_exportar_tflite.py      # Exportação do modelo para Android (.tflite)
+│   └── 05_exportar_tflite.py      # Exportação int8 e float16 para Android (256×256)
 │
 ├── dados/
 │   ├── brutos/                    # Imagens coletadas na UNIT (ignoradas pelo .gitignore)
@@ -70,9 +83,11 @@ TCC_VisaoComputacional/
 │   └── detect/modelos/
 │       └── treino_tcc_v13/        # Melhor modelo treinado (mAP50: 82.3%)
 │
-├── exports/                       # Modelos exportados para uso no Flutter
-│   └── best_float32.tflite        # Modelo TFLite gerado (42.7 MB) — ignorado pelo .gitignore
+├── exports/                       # Modelos exportados (ignorados pelo .gitignore)
+│   ├── best_int8.tflite           # Quantizado int8, 256×256 (~11 MB) — uso no app
+│   └── best_float16.tflite        # Float16, 256×256 (~21 MB) — fallback de precisão
 │
+├── app_mobile/                    # Aplicativo Flutter para Android
 ├── requirements.txt               # Dependências Python
 └── .gitignore
 ```
@@ -82,31 +97,41 @@ TCC_VisaoComputacional/
 ## Como Executar o Protótipo (PC)
 
 ### 1. Instalar dependências
+
 ```bash
+cd TCC_VisaoComputacional
+python -m venv .venv
+source .venv/Scripts/activate   # Windows
 pip install -r requirements.txt
 ```
 
 ### 2. Testar a câmera
+
 ```bash
 python scriptsIA/01_testeCamera.py
 ```
 
 ### 3. Rodar o reconhecimento visual
+
 ```bash
 python scriptsIA/02_reconhecimentoYolo.py
 ```
 
 ### 4. Rodar o assistente de voz completo
+
 ```bash
 python scriptsIA/04_assistente_completo.py
 ```
 
 ### 5. Exportar o modelo para Android
+
 ```bash
 python scriptsIA/05_exportar_tflite.py
 ```
 
-> **Nota:** Os scripts de PC utilizam o [Iriun Webcam](https://iriun.com/) para espelhar a câmera do celular Android no computador durante o desenvolvimento, visto que alguns PC não possuem câmera ou webcam.
+O script gera automaticamente os dois formatos (int8 e float16) e os copia para `app_mobile/android/app/src/main/assets/`.
+
+> **Nota:** Os scripts de PC utilizam o [Iriun Webcam](https://iriun.com/) para espelhar a câmera do celular Android no computador durante o desenvolvimento.
 
 ---
 
@@ -122,13 +147,20 @@ O modelo atual (`treino_tcc_v13`) foi treinado com fine-tuning sobre o YOLOv8s c
 | Recall | 77.5% |
 | Épocas | 25 (early stopping) |
 
-O arquivo `.tflite` gerado não está versionado no repositório devido ao tamanho (42.7 MB). Para obtê-lo, execute o script `05_exportar_tflite.py` com o modelo `.pt` disponível em `runs/detect/modelos/treino_tcc_v13/weights/best.pt`.
+### Formatos exportados
+
+| Arquivo | Formato | Tamanho | Resolução | Uso |
+|---|---|---|---|---|
+| `best_int8.tflite` | Int8 quantizado | ~11 MB | 256×256 | App (padrão) |
+| `best_float16.tflite` | Float16 | ~21 MB | 256×256 | Fallback de precisão |
+
+Os arquivos `.tflite` não estão versionados no repositório. Para gerá-los, execute `05_exportar_tflite.py` com o modelo `.pt` disponível em `runs/detect/modelos/treino_tcc_v13/weights/best.pt`.
 
 ---
 
 ## App Android (Flutter)
 
-O aplicativo mobile foi desenvolvido em Flutter para Android, integrando inferência TFLite em tempo real com síntese de voz nativa (Android TTS) em português brasileiro.
+O aplicativo mobile foi desenvolvido em Flutter para Android, utilizando o pacote `ultralytics_yolo` para inferência nativa com aceleração GPU.
 
 ### Estrutura do App
 
@@ -137,49 +169,58 @@ app_mobile/
 ├── lib/
 │   ├── main.dart                      # Ponto de entrada — gerencia permissão de câmera
 │   ├── detector/
-│   │   └── object_detector.dart       # Pipeline TFLite: captura → inferência → NMS
+│   │   └── object_detector.dart       # Classe Detection (dados de cada objeto detectado)
 │   ├── tts/
-│   │   └── tts_service.dart           # Lógica de avisos de voz com prioridade e buffer
+│   │   └── tts_service.dart           # Lógica de avisos de voz: prioridade, proximidade e posição
 │   └── screens/
-│       └── camera_screen.dart         # UI: preview da câmera + overlay das detecções
-│
-├── assets/
-│   ├── labels.txt                     # 17 classes em português (ordem do modelo)
-│   └── model/
-│       └── best_float32.tflite        # Modelo exportado (copiar de exports/)
+│       └── camera_screen.dart         # UI: YOLOView + overlay de bounding boxes + barra de status
 │
 └── android/
     └── app/
-        ├── build.gradle.kts           # Configurações de compilação Android
-        └── src/main/AndroidManifest.xml
+        ├── build.gradle.kts           # Configurações de compilação (NDK 28, Java 17, minSdk 24)
+        ├── proguard-rules.pro         # Regras R8 para LiteRT e snakeyaml
+        └── src/main/
+            ├── AndroidManifest.xml
+            └── assets/
+                ├── best_int8.tflite       # Modelo padrão (copiar de exports/)
+                └── best_float16.tflite    # Modelo alternativo (copiar de exports/)
 ```
 
 ### Pré-requisitos
 
 - [Flutter SDK](https://flutter.dev/docs/get-started/install) instalado e no PATH
-- Android SDK com API 31 ou superior
-- Celular Android com **Depuração USB** ativada (Opções do desenvolvedor)
-- Modelo exportado: executar `05_exportar_tflite.py` e copiar o `.tflite` para `app_mobile/assets/model/`
+- [Android Studio](https://developer.android.com/studio) com JDK embutido (Java 21)
+- Android SDK — API 36, NDK `28.2.13676358`
+- Celular Android com **Depuração USB** ativada e `minSdk 24` (Android 7.0+)
+- Modelos exportados em `app_mobile/android/app/src/main/assets/` (gerados por `05_exportar_tflite.py`)
+
+> O comando de build exige `JAVA_HOME` apontando para o JDK do Android Studio porque o pacote `ultralytics_yolo` requer Java 17+.
 
 ### Como Compilar e Instalar
 
 ```bash
-# 1. Copiar o modelo exportado para os assets
-cp exports/best_float32.tflite app_mobile/assets/model/best_float32.tflite
-
-# 2. Instalar dependências Flutter
 cd app_mobile
+
+# Instalar dependências Flutter
 flutter pub get
 
-# 3. Compilar e instalar no celular conectado via USB
-flutter run
+# Compilar APK de release
+JAVA_HOME="C:/Program Files/Android/Android Studio/jbr" flutter build apk --release
+
+# O APK gerado estará em:
+# build/app/outputs/flutter-apk/app-release.apk
 ```
+
+Para instalar em celulares Xiaomi (Redmi) que bloqueiam instalação via USB, transfira o APK pelo modo **Transferência de arquivo (MTP)** e instale manualmente.
 
 ### Funcionalidades do App
 
-- Detecção de objetos em tempo real via câmera traseira
-- Sistema de prioridade: Pessoa (alta) → pontos de navegação (média) → referências (baixa)
-- Posição espacial do objeto: esquerda, frente ou direita
-- Alerta de proximidade: aviso adicional quando objeto ocupa >15% do frame
-- Buffer de confirmação: objeto precisa ser detectado por tempo mínimo antes do aviso
-- Síntese de voz em português brasileiro (Android TTS nativo)
+- Detecção de objetos em tempo real via câmera traseira (inferência nativa com GPU)
+- Indicador de hardware na tela: **GPU** ou **CPU** e contagem de **FPS**
+- Sistema de prioridade de anúncio: Pessoa (alta) → pontos de navegação (média) → referências (baixa)
+- Posição espacial do objeto: *à sua esquerda*, *à sua frente* ou *à sua direita*
+- Alerta de proximidade crescente: *próximo* (>15% do frame) e *muito próximo* (>30%)
+- Buffer de confirmação: objeto precisa permanecer visível por tempo mínimo antes do aviso
+- Reaviso periódico para objetos que continuam no campo de visão
+- Concordância de gênero gramatical nos anúncios em português brasileiro
+- Síntese de voz em português brasileiro (Android TTS nativo via `flutter_tts`)
