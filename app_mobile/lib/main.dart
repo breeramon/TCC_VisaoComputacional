@@ -23,7 +23,7 @@ class NavIndoorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Navegação Indoor — TCC UNIT',
+      title: 'VozGuia — TCC UNIT',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         colorScheme: ColorScheme.dark(
