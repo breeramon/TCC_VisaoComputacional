@@ -1,0 +1,36 @@
+description: Ultralytics best model trained on dados/brutos/data.yaml
+author: Ultralytics
+date: '2026-04-24T10:48:50.626544'
+version: 8.4.25
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 256
+- 256
+names:
+  0: acessibility
+  1: door
+  2: elevator
+  3: elevator sign
+  4: exit sign
+  5: fire alarm
+  6: fire extinguisher
+  7: handle
+  8: men washroom
+  9: person
+  10: push handle
+  11: stair sign
+  12: trash can
+  13: water dispenser
+  14: women washroom
+args:
+  batch: 1
+  fraction: 1.0
+  half: true
+  int8: false
+  nms: false
+channels: 3
+end2end: false

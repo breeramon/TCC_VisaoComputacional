@@ -12,17 +12,17 @@ def treinar_modelo():
     name = f"treino_tcc_{versao}"
     print(f"Nome do treino: {name}")
 
-    print("Carregando o cérebro base (YOLOv8 Small)...")
+    print("Carregando o cérebro base (YOLOv8 Nano)...")
     modelo = YOLO("yolov8n.pt")
 
     print("Iniciando o treinamento... Isso pode demorar!")
     resultados = modelo.train(
         data="dados/brutos/data.yaml",
-        epochs=50,
+        epochs=100,
         imgsz=640,
         batch=8,
         device=device,
-        patience=10,
+        patience=20,
         workers=0,
         project="modelos",
         name=name,
@@ -46,10 +46,8 @@ def treinar_modelo():
     print(f"Recall:    {metricas['recall']:.4f}")
     print(f"Modelo salvo em: modelos/{name}/weights/best.pt")
 
-    print("\nExportando para TFLite...")
-    modelo_final = YOLO(f"modelos/{name}/weights/best.pt")
-    modelo_final.export(format="tflite", int8=True, imgsz=256)
-    print("TFLite gerado com sucesso!")
+    print(f"\nPróximo passo: exportar para TFLite com o script 05_exportar_tflite.py")
+    print(f"  python scriptsIA/05_exportar_tflite.py runs/detect/modelos/{name}/weights/best.pt")
 
 if __name__ == "__main__":
     treinar_modelo()
