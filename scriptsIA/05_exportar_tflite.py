@@ -50,7 +50,6 @@ def exportar(int8: bool):
         data="dados/brutos/data.yaml" if int8 else None,
     )
 
-    # ✅ Valida se o export gerou o arquivo
     if not caminho or not os.path.exists(caminho):
         print(f"ERRO: Export falhou — arquivo não encontrado: {caminho}")
         return False
@@ -81,7 +80,6 @@ if __name__ == "__main__":
     exportar(int8=True)
     exportar(int8=False)
 
-    # ✅ Salva resumo JSON para documentar no TCC
     resumo = {
         "data":           datetime.now().strftime("%Y-%m-%d %H:%M"),
         "modelo_origem":  MODELO_ORIGEM,

@@ -48,8 +48,6 @@ O modelo detecta 17 classes. Os nomes abaixo são os identificadores internos do
 | `water dispenser` | Bebedouro | Baixa |
 | `handle` | Maçaneta | Baixa |
 | `push handle` | Maçaneta de empurrar | Baixa |
-| `left arrow` | Seta esquerda | Baixa |
-| `right arrow` | Seta direita | Baixa |
 | `men-s washroom` | Banheiro masculino | Baixa |
 | `women-s washroom` | Banheiro feminino | Baixa |
 | `accessibility` | Acessibilidade | Baixa |
@@ -137,24 +135,24 @@ O script gera automaticamente os dois formatos (int8 e float16) e os copia para 
 
 ## Modelo Treinado
 
-O modelo atual (`treino_tcc_v13`) foi treinado com fine-tuning sobre o YOLOv8s com as seguintes métricas:
+O modelo atual (`treino_tcc_v20260424_1205`) foi treinado com fine-tuning sobre o YOLOv8n com as seguintes métricas:
 
 | Métrica | Valor |
 |---|---|
-| mAP50 | 82.3% |
-| mAP50-95 | 57.7% |
-| Precisão | 82.2% |
-| Recall | 77.5% |
-| Épocas | 25 (early stopping) |
+| mAP50 | 75.8% |
+| mAP50-95 | 54.6% |
+| Precisão | 80.7% |
+| Recall | 70.5% |
+| Épocas | 50 |
 
 ### Formatos exportados
 
 | Arquivo | Formato | Tamanho | Resolução | Uso |
 |---|---|---|---|---|
-| `best_int8.tflite` | Int8 quantizado | ~11 MB | 256×256 | App (padrão) |
-| `best_float16.tflite` | Float16 | ~21 MB | 256×256 | Fallback de precisão |
+| `best_int8.tflite` | Int8 quantizado | ~3 MB | 256×256 | App (padrão) |
+| `best_float16.tflite` | Float16 | ~6 MB | 256×256 | Fallback de precisão |
 
-Os arquivos `.tflite` não estão versionados no repositório. Para gerá-los, execute `05_exportar_tflite.py` com o modelo `.pt` disponível em `runs/detect/modelos/treino_tcc_v13/weights/best.pt`.
+Os arquivos `.tflite` não estão versionados no repositório. Para gerá-los, execute `05_exportar_tflite.py` com o modelo `.pt` disponível em `runs/detect/modelos/treino_tcc_v20260424_1205/weights/best.pt`.
 
 ---
 
