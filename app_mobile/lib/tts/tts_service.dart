@@ -14,22 +14,20 @@ class TtsService {
   // Chaves = nomes do modelo (inglês) — valores = (prioridade, segsConfirmação, segsReaviso)
   static const Map<String, (int, double, double)> _prioridades = {
     'person':            (1, 0.4, 3.0),
-    'door':              (2, 0.8, 5.0),
-    'elevator':          (2, 0.8, 5.0),
+    'door':              (2, 0.4, 5.0),
+    'elevator':          (2, 0.4, 5.0),
     'elevator sign':     (2, 0.8, 5.0),
-    'stair sign':        (2, 0.8, 5.0),
+    'stair sign':        (2, 0.4, 5.0),
     'exit sign':         (2, 0.8, 5.0),
-    'fire alarm':        (2, 0.8, 5.0),
-    'fire extinguisher': (3, 1.0, 8.0),
-    'trash can':         (3, 1.0, 8.0),
-    'water dispenser':   (3, 1.0, 8.0),
-    'handle':            (3, 1.0, 8.0),
-    'push handle':       (3, 1.0, 8.0),
-    'left arrow':        (3, 1.0, 8.0),
-    'right arrow':       (3, 1.0, 8.0),
-    "men-s washroom":    (3, 1.0, 8.0),
-    "women-s washroom":  (3, 1.0, 8.0),
-    'accessibility':     (3, 1.0, 8.0),
+    'fire alarm':        (3, 1.0, 5.0),
+    'fire extinguisher': (2, 0.4, 5.0),
+    'trash can':         (2, 0.4, 5.0),
+    'water dispenser':   (2, 0.8, 5.0),
+    'handle':            (3, 1.0, 5.0),
+    'push handle':       (3, 1.0, 5.0),
+    'men washroom':      (3, 1.0, 5.0),
+    'women washrooom':   (3, 1.0, 5.0),
+    'acessibility':      (2, 0.8, 5.0),
   };
   static const (int, double, double) _padrao = (3, 1.0, 8.0);
 
@@ -47,11 +45,9 @@ class TtsService {
     'water dispenser':   'Bebedouro',
     'handle':            'Maçaneta',
     'push handle':       'Maçaneta de empurrar',
-    'left arrow':        'Seta esquerda',
-    'right arrow':       'Seta direita',
-    "men-s washroom":    'Banheiro masculino',
-    "women-s washroom":  'Banheiro feminino',
-    'accessibility':     'Acessibilidade',
+    'men washroom':      'Banheiro masculino',
+    'women washrooom':   'Banheiro feminino',
+    'acessibility':      'Acessibilidade',
   };
 
   // Gênero gramatical para concordância (chave = nome do modelo em inglês)
@@ -68,11 +64,9 @@ class TtsService {
     'water dispenser':   'm', // Bebedouro
     'handle':            'f', // Maçaneta
     'push handle':       'f', // Maçaneta
-    'left arrow':        'f', // Seta
-    'right arrow':       'f', // Seta
-    "men-s washroom":    'm', // Banheiro
-    "women-s washroom":  'm', // Banheiro
-    'accessibility':     'f', // Acessibilidade
+    'men washroom':      'm', // Banheiro
+    'women washrooom':   'm', // Banheiro
+    'acessibility':      'f', // Acessibilidade
   };
 
   static const double _limiarProximo = 0.15;
