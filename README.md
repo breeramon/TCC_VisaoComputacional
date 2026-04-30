@@ -79,7 +79,7 @@ TCC_VisaoComputacional/
 │
 ├── runs/                          # Resultados dos treinamentos (pesos, métricas, gráficos)
 │   └── detect/modelos/
-│       └── treino_tcc_v13/        # Melhor modelo treinado (mAP50: 82.3%)
+│       └── treino_tcc_v20260429_0902/  # Melhor modelo treinado (mAP50: 76.6%)
 │
 ├── exports/                       # Modelos exportados (ignorados pelo .gitignore)
 │   ├── best_int8.tflite           # Quantizado int8, 256×256 (~11 MB) — uso no app
@@ -135,15 +135,37 @@ O script gera automaticamente os dois formatos (int8 e float16) e os copia para 
 
 ## Modelo Treinado
 
-O modelo atual (`treino_tcc_v20260424_1205`) foi treinado com fine-tuning sobre o YOLOv8n com as seguintes métricas:
+O modelo atual (`treino_tcc_v20260429_0902`) foi treinado com fine-tuning sobre o YOLOv8n com as seguintes métricas:
 
 | Métrica | Valor |
 |---|---|
-| mAP50 | 75.8% |
-| mAP50-95 | 54.6% |
-| Precisão | 80.7% |
-| Recall | 70.5% |
-| Épocas | 50 |
+| mAP50 | 76.6% |
+| mAP50-95 | 55.4% |
+| Precisão | 82.1% |
+| Recall | 71.7% |
+| Épocas | 90 (early stopping — melhor resultado no epoch 70) |
+
+### Métricas por classe
+
+| Classe | Precisão | Recall | mAP50 | mAP50-95 |
+|---|---|---|---|---|
+| `acessibility` | 69.3% | 66.0% | 66.9% | 42.5% |
+| `door` | 79.6% | 80.9% | 85.9% | 70.6% |
+| `elevator` | 89.9% | 90.0% | 94.1% | 75.2% |
+| `elevator sign` | 84.5% | 28.4% | 40.3% | 21.9% |
+| `exit sign` | 75.8% | 79.5% | 82.2% | 51.2% |
+| `fire alarm` | 77.9% | 60.0% | 67.1% | 38.3% |
+| `fire extinguisher` | 93.3% | 86.3% | 91.9% | 70.8% |
+| `handle` | 78.2% | 61.6% | 74.1% | 36.1% |
+| `men washroom` | 82.9% | 87.4% | 79.1% | 55.5% |
+| `person` | 84.0% | 76.7% | 84.4% | 58.2% |
+| `push handle` | 77.9% | 62.0% | 71.1% | 45.8% |
+| `stair sign` | 71.7% | 44.0% | 52.5% | 42.2% |
+| `trash can` | 84.6% | 75.4% | 81.0% | 62.2% |
+| `water dispenser` | 88.4% | 86.7% | 87.7% | 83.1% |
+| `women washrooom` | 92.8% | 90.0% | 91.4% | 76.7% |
+
+> Classes com mAP50 abaixo de 60% (`elevator sign` e `stair sign`) possuem poucas imagens de validação e são candidatas a melhoria com coleta adicional de dados.
 
 ### Formatos exportados
 
@@ -152,7 +174,7 @@ O modelo atual (`treino_tcc_v20260424_1205`) foi treinado com fine-tuning sobre 
 | `best_int8.tflite` | Int8 quantizado | ~3 MB | 256×256 | App (padrão) |
 | `best_float16.tflite` | Float16 | ~6 MB | 256×256 | Fallback de precisão |
 
-Os arquivos `.tflite` não estão versionados no repositório. Para gerá-los, execute `05_exportar_tflite.py` com o modelo `.pt` disponível em `runs/detect/modelos/treino_tcc_v20260424_1205/weights/best.pt`.
+Os arquivos `.tflite` não estão versionados no repositório. Para gerá-los, execute `05_exportar_tflite.py` com o modelo `.pt` disponível em `runs/detect/modelos/treino_tcc_v20260429_0902/weights/best.pt`.
 
 ---
 
