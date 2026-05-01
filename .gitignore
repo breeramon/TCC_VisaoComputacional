@@ -28,6 +28,12 @@ app_mobile/.flutter-plugins-dependencies
 calibration_image_sample_data_*.npy     # Dados de calibração baixados automaticamente pelo Ultralytics
 calibration_image_sample_data_*.npy.zip
 
+# Modelos TFLite exportados (distribuídos via GitHub Releases)
+# O script setup_modelos.py baixa esses arquivos automaticamente
+exports/*.tflite
+app_mobile/android/app/src/main/assets/*.tflite
+app_mobile/assets/model/*.tflite
+
 # Imagens e Vídeos de Teste (Evita lotar o repositório)
 dados/brutos/*
 dados/anotados/*

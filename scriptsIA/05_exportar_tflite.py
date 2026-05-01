@@ -23,7 +23,7 @@ _uc.check_requirements = _noop
 from ultralytics import YOLO
 
 # ── Configurações ──────────────────────────────────────────────────────────────
-MODELO_ORIGEM  = sys.argv[1] if len(sys.argv) > 1 else "runs/detect/modelos/treino_tcc_v20260424_1205/weights/best.pt"
+MODELO_ORIGEM  = sys.argv[1] if len(sys.argv) > 1 else "runs/detect/modelos/treino_tcc_v20260429_0902/weights/best.pt"
 PASTA_DESTINO  = "exports"
 ASSETS_ANDROID = "app_mobile/android/app/src/main/assets"
 IMGSZ          = 256
