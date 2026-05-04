@@ -56,8 +56,16 @@ O modelo detecta 17 classes. Os nomes abaixo são os identificadores internos do
 
 ## Datasets Utilizados no Treinamento
 
-- **indoor-navigation Computer Vision Dataset** — [Roboflow Universe](https://universe.roboflow.com/akhash/indoor-navigation-xs4of)
-- Outro dataset em pesquisa.
+O dataset final utilizado nos treinamentos é uma junção dos quatro datasets públicos abaixo + as imagens próprias coletadas no campus da UNIT e em outros lugares com os objetos presentes nas universidades:
+
+- **Dataset final (treinamento atual)** — [deteccao-de-objetos-faculdade](https://universe.roboflow.com/breno-s-workspace/deteccao-de-objetos-faculdade)
+
+Datasets de origem:
+
+- [indoor-navigation (akhash)](https://universe.roboflow.com/akhash/indoor-navigation-xs4of)
+- [person-detection (titulacin)](https://universe.roboflow.com/titulacin/person-detection-9a6mk)
+- [indoor-navigation-v8ctg (final-project-4152)](https://universe.roboflow.com/final-project-4152/indoor-navigation-v8ctg)
+- [door-detection (cody-pwtvk)](https://universe.roboflow.com/cody-pwtvk/door-detection-j97hy)
 
 ---
 
