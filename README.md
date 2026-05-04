@@ -174,7 +174,23 @@ O modelo atual (`treino_tcc_v20260429_0902`) foi treinado com fine-tuning sobre 
 | `best_int8.tflite` | Int8 quantizado | ~3 MB | 256×256 | App (padrão) |
 | `best_float16.tflite` | Float16 | ~6 MB | 256×256 | Fallback de precisão |
 
-Os arquivos `.tflite` não estão versionados no repositório. Para gerá-los, execute `05_exportar_tflite.py` com o modelo `.pt` disponível em `runs/detect/modelos/treino_tcc_v20260429_0902/weights/best.pt`.
+Os arquivos `.tflite` e o `.pt` não estão versionados no repositório. Há duas formas de obtê-los:
+
+**Opção 1 — Baixar do GitHub Release (recomendado):**
+
+```bash
+python setup_modelos.py
+```
+
+O script baixa automaticamente `best_int8.tflite`, `best_float16.tflite` e `best.pt` da release mais recente e os coloca nas pastas corretas (`exports/` e `app_mobile/android/app/src/main/assets/`).
+
+**Opção 2 — Gerar a partir do modelo treinado:**
+
+```bash
+python scriptsIA/05_exportar_tflite.py runs/detect/modelos/treino_tcc_v20260429_0902/weights/best.pt
+```
+
+Requer o arquivo `best.pt` disponível localmente em `runs/detect/modelos/treino_tcc_v20260429_0902/weights/`.
 
 ---
 
