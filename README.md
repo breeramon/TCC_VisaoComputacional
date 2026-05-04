@@ -21,7 +21,7 @@ O estudo de caso vai ser realizado no campus Farolândia da Universidade Tiraden
 | Componente | Tecnologia |
 |---|---|
 | Linguagem (scripts IA) | Python 3.x |
-| Detecção de objetos | YOLOv8s (Ultralytics) |
+| Detecção de objetos | YOLOv8n e YOLOv8s (Ultralytics) |
 | Inferência no Android | ultralytics_yolo (nativo C++, GPU via TFLite) |
 | Síntese de voz (app) | flutter_tts (Android TTS nativo) |
 | Síntese de voz (protótipo PC) | Windows TTS via subprocess |
