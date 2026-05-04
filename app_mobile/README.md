@@ -1,4 +1,4 @@
-# nav_indoor_tcc — App Flutter
+# VozGuia — App Flutter
 
 Aplicativo Android de navegação indoor por voz para pessoas com deficiência visual. Utiliza YOLOv8 via TFLite para detecção de objetos em tempo real e síntese de voz em português brasileiro.
 
