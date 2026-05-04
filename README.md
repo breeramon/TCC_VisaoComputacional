@@ -1,4 +1,4 @@
-# Sistema de Navegação Indoor por Voz para Pessoas com Deficiência Visual
+#VozGuia: Aplicativo Flutter de Identificação de Obstáculos Baseado em Visão Computacional Para Pessoas com Deficiência Visual
 
 **TCC — Ciência da Computação | Universidade Tiradentes (UNIT)**
 
