@@ -268,3 +268,22 @@ Para instalar em celulares Xiaomi (Redmi) que bloqueiam instalação via USB, tr
 - Reaviso periódico para objetos que continuam no campo de visão
 - Concordância de gênero gramatical nos anúncios em português brasileiro
 - Síntese de voz em português brasileiro (Android TTS nativo via `flutter_tts`)
+
+---
+
+## Limitações e Trabalhos Futuros
+
+### Limitações atuais
+
+- O modelo detecta **que existe** um objeto de uma classe, mas não lê conteúdo textual dentro dele. Placas de sala, por exemplo, são identificadas como presença de placa, sem distinção do número.
+- O desempenho de inferência é limitado pelo hardware do dispositivo. Celulares com GPU fraca (ex: Snapdragon 685) operam entre 3–5 FPS mesmo com o modelo otimizado (YOLOv8n, 256×256, float16).
+- As classes `elevator sign` (mAP50: 40,3%) e `stair sign` (mAP50: 52,5%) ainda possuem desempenho abaixo do ideal por limitação de imagens de validação.
+- O estudo de caso é restrito ao campus Farolândia da UNIT — o modelo pode ter desempenho reduzido em outros ambientes internos com características visuais distintas.
+
+### Possibilidades de expansão
+
+- **Leitura de números de sala via OCR:** Integrar o [ML Kit Text Recognition](https://developers.google.com/ml-kit/vision/text-recognition/v2) do Google (gratuito, roda offline no Android) para, após detectar uma placa de sala, extrair e anunciar o número por voz — permitindo ao usuário saber exatamente em qual sala está.
+- **Novas classes:** Adição de `stairs` (escadas), `bench` (banco/assento) e `drinking fountain` para ampliar a cobertura de obstáculos comuns em ambientes universitários.
+- **Suporte a outros campi:** Coleta de imagens em outros ambientes da UNIT ou outras instituições para aumentar a generalização do modelo.
+- **Modo de baixo consumo:** Redução dinâmica de `inferenceFrequency` quando a bateria estiver abaixo de um limiar, preservando a autonomia do dispositivo.
+- **Feedback tátil:** Combinação de vibração com os avisos de voz para usuários com deficiência auditiva concomitante.

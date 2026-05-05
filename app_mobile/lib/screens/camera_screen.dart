@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ultralytics_yolo/ultralytics_yolo.dart';
+import 'package:ultralytics_yolo/widgets/yolo_controller.dart';
 import '../detector/object_detector.dart';
 import '../tts/tts_service.dart';
 
@@ -22,6 +23,10 @@ Color _corParaClasse(String className) {
 
 const _useGpu = true;
 
+// Limita a 15 inferências/segundo na GPU — suficiente para navegação e
+// reduz consumo de CPU/bateria em dispositivos fracos
+const _streamingConfig = YOLOStreamingConfig(inferenceFrequency: 15);
+
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
 
@@ -31,6 +36,7 @@ class CameraScreen extends StatefulWidget {
 
 class _CameraScreenState extends State<CameraScreen> {
   final TtsService _tts = TtsService();
+  final YOLOViewController _yoloController = YOLOViewController();
 
   List<YOLOResult> _results = [];
   int _fps = 0;
@@ -41,6 +47,8 @@ class _CameraScreenState extends State<CameraScreen> {
   void initState() {
     super.initState();
     _tts.init();
+    // Limita a 7 detecções por frame — evita processar dezenas de bboxes desnecessárias
+    _yoloController.setNumItemsThreshold(7);
   }
 
   void _onResults(List<YOLOResult> results) {
@@ -55,7 +63,6 @@ class _CameraScreenState extends State<CameraScreen> {
     }
 
     // Converte YOLOResult → Detection para o TtsService
-    // normalizedBox contém coordenadas [0,1] relativas ao frame
     final detections = results.map((r) => Detection(
       classIndex: r.classIndex,
       className: r.className,
@@ -83,22 +90,26 @@ class _CameraScreenState extends State<CameraScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // YOLOView: câmera + inferência nativa com GPU automático
+          // YOLOView: câmera + inferência nativa com GPU
           YOLOView(
             modelPath: 'best_float16',
             task: YOLOTask.detect,
+            controller: _yoloController,
+            streamingConfig: _streamingConfig,
             confidenceThreshold: 0.6,
             iouThreshold: 0.45,
             useGpu: _useGpu,
-            showOverlays: false,   // usa nosso overlay customizado abaixo
+            showOverlays: false,
             showNativeUI: false,
             onResult: _onResults,
           ),
 
           // Overlay com bounding boxes coloridas por prioridade
           if (_results.isNotEmpty)
-            CustomPaint(
-              painter: _DetectionPainter(results: _results),
+            RepaintBoundary(
+              child: CustomPaint(
+                painter: _DetectionPainter(results: _results),
+              ),
             ),
 
           // Barra de status no topo

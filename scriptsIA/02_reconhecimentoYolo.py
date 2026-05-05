@@ -4,7 +4,7 @@ import sys
 from ultralytics import YOLO
 
 CONFIANCA = 0.6
-MODELO_PATH = sys.argv[1] if len(sys.argv) > 1 else "runs/detect/modelos/treino_tcc_v13/weights/best.pt"
+MODELO_PATH = sys.argv[1] if len(sys.argv) > 1 else "runs/detect/modelos/treino_tcc_v20260429_0902/weights/best.pt"
 
 def reconhecer_objetos():
     print(f"Carregando modelo: {MODELO_PATH}")

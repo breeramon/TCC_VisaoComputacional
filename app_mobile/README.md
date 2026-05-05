@@ -95,3 +95,12 @@ YOLOView(
   ...
 )
 ```
+
+---
+
+## Trabalhos Futuros
+
+- **Leitura de número de sala via OCR:** Integrar o ML Kit Text Recognition para, após detectar uma placa de sala, anunciar o número por voz.
+- **Novas classes de objetos:** `stairs`, `bench`, `drinking fountain` para maior cobertura de obstáculos universitários.
+- **Modo de baixo consumo:** Redução dinâmica da frequência de inferência conforme nível de bateria.
+- **Feedback tátil:** Vibração combinada com os avisos de voz para usuários com deficiência auditiva concomitante.

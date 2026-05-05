@@ -6,7 +6,7 @@ import time
 import queue
 
 # ── Configurações ────────────────────────────────────────────────────────────
-MODELO_PATH  = "runs/detect/modelos/treino_tcc_v13/weights/best.pt"
+MODELO_PATH  = "runs/detect/modelos/treino_tcc_v20260429_0902/weights/best.pt"
 CONFIANCA    = 0.6
 LIMIAR_PROXIMO       = 0.15
 LIMIAR_MUITO_PROXIMO = 0.30

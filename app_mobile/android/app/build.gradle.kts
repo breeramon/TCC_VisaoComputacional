@@ -27,8 +27,8 @@ android {
         versionName = flutter.versionName
 
         ndk {
-            // Inclui apenas as arquiteturas ARM usadas em celulares Android
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+            // Inclui apenas as arquiteturas ARM usadas em celulares Android reais
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
         }
     }
 
@@ -36,6 +36,7 @@ android {
         release {
             signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
