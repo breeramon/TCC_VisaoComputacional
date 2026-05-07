@@ -190,9 +190,9 @@ Validações realizadas com o mesmo modelo (`treino_tcc_v20260429_0902`) em dife
 
 | Resolução | mAP50 | mAP50-95 | Precisão | Recall | FPS estimado (Redmi Note 10 e Redmi Note 13) |
 |---|---|---|---|---|---|
-| 256×256 | 60.5% | 40.8% | 69.6% | 56.8% | 3–5 FPS |
-| 320×320 | 68.5% | 47.9% | 81.2% | 61.0% | 2–4 FPS |
-| 416×416 | 73.0% | 52.2% | 81.9% | 66.7% | 1–3 FPS |
+| 256×256 | 60.5% | 40.8% | 69.6% | 56.8% | 7–15 FPS |
+| 320×320 | 68.5% | 47.9% | 81.2% | 61.0% | 4–9 FPS |
+| 416×416 | 73.0% | 52.2% | 81.9% | 66.7% | 2–4 FPS |
 | **640×640** | **76.6%** | **55.4%** | **82.1%** | **71.7%** | **~2 FPS** |
 
 > A resolução atual de exportação é **640×640** — mesma do treinamento, máxima qualidade de detecção.
