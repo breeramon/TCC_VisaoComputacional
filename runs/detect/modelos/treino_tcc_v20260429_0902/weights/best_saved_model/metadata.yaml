@@ -1,6 +1,6 @@
 description: Ultralytics best model trained on dados/brutos/data.yaml
 author: Ultralytics
-date: '2026-05-05T10:19:36.541061'
+date: '2026-05-06T15:45:21.909339'
 version: 8.4.25
 license: AGPL-3.0 License (https://ultralytics.com/license)
 docs: https://docs.ultralytics.com
@@ -8,8 +8,8 @@ stride: 32
 task: detect
 batch: 1
 imgsz:
-- 256
-- 256
+- 640
+- 640
 names:
   0: acessibility
   1: door

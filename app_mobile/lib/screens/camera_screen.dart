@@ -92,7 +92,7 @@ class _CameraScreenState extends State<CameraScreen> {
         children: [
           // YOLOView: câmera + inferência nativa com GPU
           YOLOView(
-            modelPath: 'best_float16',
+            modelPath: 'best_int8',
             task: YOLOTask.detect,
             controller: _yoloController,
             streamingConfig: _streamingConfig,
