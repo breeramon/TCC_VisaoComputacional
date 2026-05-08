@@ -50,7 +50,7 @@ O modelo detecta 15 classes. Os nomes abaixo são os identificadores internos do
 | `handle` | Maçaneta | Baixa |
 | `push handle` | Maçaneta de empurrar | Baixa |
 | `men washroom` | Banheiro masculino | Baixa |
-| `women washrooom` | Banheiro feminino | Baixa |
+| `women washroom` | Banheiro feminino | Baixa |
 
 ---
 

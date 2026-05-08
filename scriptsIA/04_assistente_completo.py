@@ -27,7 +27,7 @@ traducao_classes = {
     'elevator sign':     'Placa de elevador',
     'fire alarm':        'Alarme de incêndio',
     'men washroom':      'Banheiro masculino',
-    'women washrooom':   'Banheiro feminino',
+    'women washroom':   'Banheiro feminino',
 }
 
 GENERO = {

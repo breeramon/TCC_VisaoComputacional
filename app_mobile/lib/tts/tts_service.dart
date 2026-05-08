@@ -27,7 +27,7 @@ class TtsService {
     'handle':            (3, 1.0, 5.0),
     'push handle':       (3, 1.0, 5.0),
     'men washroom':      (3, 1.0, 5.0),
-    'women washrooom':   (3, 1.0, 5.0),
+    'women washroom':    (3, 1.0, 5.0),
   };
   static const (int, double, double) _padrao = (3, 1.0, 8.0);
 
@@ -47,7 +47,7 @@ class TtsService {
     'handle':            'Maçaneta',
     'push handle':       'Maçaneta de empurrar',
     'men washroom':      'Banheiro masculino',
-    'women washrooom':   'Banheiro feminino',
+    'women washroom':    'Banheiro feminino',
   };
 
   // Gênero gramatical para concordância (chave = nome do modelo em inglês)
@@ -65,7 +65,7 @@ class TtsService {
     'handle':            'f', // Maçaneta
     'push handle':       'f', // Maçaneta
     'men washroom':      'm', // Banheiro
-    'women washrooom':   'm', // Banheiro
+    'women washroom':    'm', // Banheiro
     'acessibility':      'f', // Acessibilidade
   };
 
