@@ -18,11 +18,11 @@ def treinar_modelo():
     print("Iniciando o treinamento... Isso pode demorar!")
     resultados = modelo.train(
         data="dados/brutos/data.yaml",
-        epochs=100,
+        epochs=50,
         imgsz=640,
         batch=8,
         device=device,
-        patience=20,
+        patience=10,
         workers=0,
         project="modelos",
         name=name,
