@@ -1,4 +1,4 @@
-# Sistema de Navegação Indoor por Voz para Pessoas com Deficiência Visual
+# VozGuia: Aplicativo Flutter de Identificação de Obstáculos Baseado em Visão Computacional Para Pessoas com Deficiência Visual
 
 **TCC — Ciência da Computação | Universidade Tiradentes (UNIT)**
 
@@ -21,7 +21,7 @@ O estudo de caso vai ser realizado no campus Farolândia da Universidade Tiraden
 | Componente | Tecnologia |
 |---|---|
 | Linguagem (scripts IA) | Python 3.x |
-| Detecção de objetos | YOLOv8s (Ultralytics) |
+| Detecção de objetos | YOLOv8n (Ultralytics) |
 | Inferência no Android | ultralytics_yolo (nativo C++, GPU via TFLite) |
 | Síntese de voz (app) | flutter_tts (Android TTS nativo) |
 | Síntese de voz (protótipo PC) | Windows TTS via subprocess |
@@ -32,7 +32,7 @@ O estudo de caso vai ser realizado no campus Farolândia da Universidade Tiraden
 
 ## Classes de Objetos Detectados
 
-O modelo detecta 17 classes. Os nomes abaixo são os identificadores internos do modelo (inglês) seguidos do que é anunciado em voz pelo app (português):
+O modelo detecta 15 classes. Os nomes abaixo são os identificadores internos do modelo (inglês) seguidos do que é anunciado em voz pelo app (português):
 
 | Classe no modelo | Anúncio em voz | Prioridade |
 |---|---|---|
@@ -42,22 +42,37 @@ O modelo detecta 17 classes. Os nomes abaixo são os identificadores internos do
 | `elevator sign` | Placa de elevador | Média |
 | `stair sign` | Placa de escada | Média |
 | `exit sign` | Sinalização de saída | Média |
-| `fire alarm` | Alarme de incêndio | Média |
-| `fire extinguisher` | Extintor de incêndio | Baixa |
-| `trash can` | Lixeira | Baixa |
-| `water dispenser` | Bebedouro | Baixa |
+| `fire extinguisher` | Extintor de incêndio | Média |
+| `acessibility` | Acessibilidade | Média |
+| `trash can` | Lixeira | Média |
+| `water dispenser` | Bebedouro | Média |
+| `fire alarm` | Alarme de incêndio | Baixa |
 | `handle` | Maçaneta | Baixa |
 | `push handle` | Maçaneta de empurrar | Baixa |
-| `men-s washroom` | Banheiro masculino | Baixa |
-| `women-s washroom` | Banheiro feminino | Baixa |
-| `accessibility` | Acessibilidade | Baixa |
+| `men washroom` | Banheiro masculino | Baixa |
+| `women washroom` | Banheiro feminino | Baixa |
 
 ---
 
 ## Datasets Utilizados no Treinamento
 
-- **indoor-navigation Computer Vision Dataset** — [Roboflow Universe](https://universe.roboflow.com/akhash/indoor-navigation-xs4of)
-- Outro dataset em pesquisa.
+O dataset final utilizado nos treinamentos é uma junção dos quatro datasets públicos abaixo + as imagens próprias coletadas no campus da UNIT e em outros lugares com os objetos presentes nas universidades:
+
+| Split | Imagens |
+|---|---|
+| Treino | 8.679 |
+| Validação | 826 |
+| Teste | 412 |
+| **Total** | **9.917** |
+
+- **Dataset final (treinamento atual)** — [deteccao-de-objetos-faculdade](https://universe.roboflow.com/breno-s-workspace/deteccao-de-objetos-faculdade)
+
+Datasets de origem:
+
+- [indoor-navigation (akhash)](https://universe.roboflow.com/akhash/indoor-navigation-xs4of)
+- [person-detection (titulacin)](https://universe.roboflow.com/titulacin/person-detection-9a6mk)
+- [indoor-navigation-v8ctg (final-project-4152)](https://universe.roboflow.com/final-project-4152/indoor-navigation-v8ctg)
+- [door-detection (cody-pwtvk)](https://universe.roboflow.com/cody-pwtvk/door-detection-j97hy)
 
 ---
 
@@ -71,7 +86,7 @@ TCC_VisaoComputacional/
 │   ├── 02_reconhecimentoYolo.py   # Visualização das detecções com FPS
 │   ├── 03_treinamento_yolo.py     # Fine-tuning do YOLOv8
 │   ├── 04_assistente_completo.py  # Assistente de voz com reconhecimento em tempo real
-│   └── 05_exportar_tflite.py      # Exportação int8 e float16 para Android (256×256)
+│   └── 05_exportar_tflite.py      # Exportação int8 e float16 para Android (640×640)
 │
 ├── dados/
 │   ├── brutos/                    # Imagens coletadas na UNIT (ignoradas pelo .gitignore)
@@ -82,8 +97,8 @@ TCC_VisaoComputacional/
 │       └── treino_tcc_v20260429_0902/  # Melhor modelo treinado (mAP50: 76.6%)
 │
 ├── exports/                       # Modelos exportados (ignorados pelo .gitignore)
-│   ├── best_int8.tflite           # Quantizado int8, 256×256 (~11 MB) — uso no app
-│   └── best_float16.tflite        # Float16, 256×256 (~21 MB) — fallback de precisão
+│   ├── best_int8.tflite           # Quantizado int8, 640×640 (~3 MB) — uso no app
+│   └── best_float16.tflite        # Float16, 640×640 (~6 MB) — fallback de precisão
 │
 ├── app_mobile/                    # Aplicativo Flutter para Android
 ├── requirements.txt               # Dependências Python
@@ -165,16 +180,47 @@ O modelo atual (`treino_tcc_v20260429_0902`) foi treinado com fine-tuning sobre 
 | `water dispenser` | 88.4% | 86.7% | 87.7% | 83.1% |
 | `women washrooom` | 92.8% | 90.0% | 91.4% | 76.7% |
 
+> As métricas acima foram medidas na resolução de treinamento (640×640). As métricas na resolução de inferência do app variam conforme a resolução de exportação — ver tabela abaixo.
+
 > Classes com mAP50 abaixo de 60% (`elevator sign` e `stair sign`) possuem poucas imagens de validação e são candidatas a melhoria com coleta adicional de dados.
+
+### Comparativo de resoluções de exportação
+
+Validações realizadas com o mesmo modelo (`treino_tcc_v20260429_0902`) em diferentes resoluções de inferência:
+
+| Resolução | mAP50 | mAP50-95 | Precisão | Recall | FPS estimado (Redmi Note 10 e Redmi Note 13) |
+|---|---|---|---|---|---|
+| 256×256 | 60.5% | 40.8% | 69.6% | 56.8% | 7–15 FPS |
+| 320×320 | 68.5% | 47.9% | 81.2% | 61.0% | 4–9 FPS |
+| 416×416 | 73.0% | 52.2% | 81.9% | 66.7% | 2–4 FPS |
+| **640×640** | **76.6%** | **55.4%** | **82.1%** | **71.7%** | **~2 FPS** |
+
+> A resolução atual de exportação é **640×640** — mesma do treinamento, máxima qualidade de detecção.
 
 ### Formatos exportados
 
 | Arquivo | Formato | Tamanho | Resolução | Uso |
 |---|---|---|---|---|
-| `best_int8.tflite` | Int8 quantizado | ~3 MB | 256×256 | App (padrão) |
-| `best_float16.tflite` | Float16 | ~6 MB | 256×256 | Fallback de precisão |
+| `best_int8.tflite` | Int8 quantizado | ~3 MB | 640×640 | App (padrão) |
+| `best_float16.tflite` | Float16 | ~6 MB | 640×640 | Fallback de precisão |
 
-Os arquivos `.tflite` não estão versionados no repositório. Para gerá-los, execute `05_exportar_tflite.py` com o modelo `.pt` disponível em `runs/detect/modelos/treino_tcc_v20260429_0902/weights/best.pt`.
+Os arquivos `.tflite` e o `.pt` não estão versionados no repositório. Há duas formas de obtê-los:
+
+**Opção 1 — Baixar do GitHub Release (recomendado):**
+
+```bash
+python setup_modelos.py
+```
+
+O script baixa automaticamente `best_int8.tflite`, `best_float16.tflite` e `best.pt` da release mais recente e os coloca nas pastas corretas (`exports/` e `app_mobile/android/app/src/main/assets/`).
+
+**Opção 2 — Gerar a partir do modelo treinado:**
+
+```bash
+python scriptsIA/05_exportar_tflite.py runs/detect/modelos/treino_tcc_v20260429_0902/weights/best.pt
+```
+
+Requer o arquivo `best.pt` disponível localmente em `runs/detect/modelos/treino_tcc_v20260429_0902/weights/`.
 
 ---
 
@@ -244,3 +290,32 @@ Para instalar em celulares Xiaomi (Redmi) que bloqueiam instalação via USB, tr
 - Reaviso periódico para objetos que continuam no campo de visão
 - Concordância de gênero gramatical nos anúncios em português brasileiro
 - Síntese de voz em português brasileiro (Android TTS nativo via `flutter_tts`)
+
+---
+
+## Histórico de Releases
+
+| Release | Resolução | Descrição |
+|---|---|---|
+| [v1.0-modelos](https://github.com/breeramon/TCC_VisaoComputacional/releases/tag/v1.0-modelos) | 256×256 | Primeira exportação — calibração int8 com dataset externo (coco8) |
+| [v2.0-modelos](https://github.com/breeramon/TCC_VisaoComputacional/releases/tag/v2.0-modelos) | 256×256 | Calibração int8 corrigida com 826 imagens reais do dataset próprio |
+| [v3.0-modelos](https://github.com/breeramon/TCC_VisaoComputacional/releases/tag/v3.0-modelos) | 640×640 | Resolução de exportação elevada para 640×640 (mesma do treinamento) |
+
+---
+
+## Limitações e Trabalhos Futuros
+
+### Limitações atuais
+
+- O modelo detecta **que existe** um objeto de uma classe, mas não lê conteúdo textual dentro dele. Placas de sala, por exemplo, são identificadas como presença de placa, sem distinção do número.
+- O desempenho de inferência é limitado pelo hardware do dispositivo. Celulares com GPU fraca (ex: Snapdragon 685) operam entre 2–5 FPS — ~2 FPS na resolução máxima (640×640) e até 15 FPS na resolução reduzida (256×256).
+- As classes `elevator sign` (mAP50: 40,3%) e `stair sign` (mAP50: 52,5%) ainda possuem desempenho abaixo do ideal por limitação de imagens de validação.
+- O estudo de caso é restrito ao campus Farolândia da UNIT — o modelo pode ter desempenho reduzido em outros ambientes internos com características visuais distintas.
+
+### Possibilidades de expansão
+
+- **Leitura de números de sala via OCR:** Integrar o [ML Kit Text Recognition](https://developers.google.com/ml-kit/vision/text-recognition/v2) do Google (gratuito, roda offline no Android) para, após detectar uma placa de sala, extrair e anunciar o número por voz — permitindo ao usuário saber exatamente em qual sala está.
+- **Novas classes:** Adição de `stairs` (escadas), `bench` (banco/assento) e `drinking fountain` para ampliar a cobertura de obstáculos comuns em ambientes universitários.
+- **Suporte a outros campi:** Coleta de imagens em outros ambientes da UNIT ou outras instituições para aumentar a generalização do modelo.
+- **Modo de baixo consumo:** Redução dinâmica de `inferenceFrequency` quando a bateria estiver abaixo de um limiar, preservando a autonomia do dispositivo.
+- **Feedback tátil:** Combinação de vibração com os avisos de voz para usuários com deficiência auditiva concomitante.

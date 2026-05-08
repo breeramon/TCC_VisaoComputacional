@@ -19,15 +19,15 @@ class TtsService {
     'elevator sign':     (2, 0.8, 5.0),
     'stair sign':        (2, 0.4, 5.0),
     'exit sign':         (2, 0.8, 5.0),
-    'fire alarm':        (3, 1.0, 5.0),
     'fire extinguisher': (2, 0.4, 5.0),
+    'acessibility':      (2, 0.8, 5.0),
     'trash can':         (2, 0.4, 5.0),
     'water dispenser':   (2, 0.8, 5.0),
+    'fire alarm':        (3, 1.0, 5.0),
     'handle':            (3, 1.0, 5.0),
     'push handle':       (3, 1.0, 5.0),
     'men washroom':      (3, 1.0, 5.0),
-    'women washrooom':   (3, 1.0, 5.0),
-    'acessibility':      (2, 0.8, 5.0),
+    'women washroom':    (3, 1.0, 5.0),
   };
   static const (int, double, double) _padrao = (3, 1.0, 8.0);
 
@@ -39,15 +39,15 @@ class TtsService {
     'elevator sign':     'Placa de elevador',
     'stair sign':        'Placa de escada',
     'exit sign':         'Sinalização de saída',
-    'fire alarm':        'Alarme de incêndio',
     'fire extinguisher': 'Extintor de incêndio',
+    'acessibility':      'Acessibilidade',
     'trash can':         'Lixeira',
     'water dispenser':   'Bebedouro',
+    'fire alarm':        'Alarme de incêndio',
     'handle':            'Maçaneta',
     'push handle':       'Maçaneta de empurrar',
     'men washroom':      'Banheiro masculino',
-    'women washrooom':   'Banheiro feminino',
-    'acessibility':      'Acessibilidade',
+    'women washroom':    'Banheiro feminino',
   };
 
   // Gênero gramatical para concordância (chave = nome do modelo em inglês)
@@ -65,7 +65,7 @@ class TtsService {
     'handle':            'f', // Maçaneta
     'push handle':       'f', // Maçaneta
     'men washroom':      'm', // Banheiro
-    'women washrooom':   'm', // Banheiro
+    'women washroom':    'm', // Banheiro
     'acessibility':      'f', // Acessibilidade
   };
 
