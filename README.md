@@ -42,15 +42,15 @@ O modelo detecta 15 classes. Os nomes abaixo são os identificadores internos do
 | `elevator sign` | Placa de elevador | Média |
 | `stair sign` | Placa de escada | Média |
 | `exit sign` | Sinalização de saída | Média |
-| `fire alarm` | Alarme de incêndio | Média |
-| `fire extinguisher` | Extintor de incêndio | Baixa |
-| `trash can` | Lixeira | Baixa |
-| `water dispenser` | Bebedouro | Baixa |
+| `fire extinguisher` | Extintor de incêndio | Média |
+| `acessibility` | Acessibilidade | Média |
+| `trash can` | Lixeira | Média |
+| `water dispenser` | Bebedouro | Média |
+| `fire alarm` | Alarme de incêndio | Baixa |
 | `handle` | Maçaneta | Baixa |
 | `push handle` | Maçaneta de empurrar | Baixa |
 | `men washroom` | Banheiro masculino | Baixa |
 | `women washrooom` | Banheiro feminino | Baixa |
-| `acessibility` | Acessibilidade | Baixa |
 
 ---
 

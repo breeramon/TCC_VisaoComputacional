@@ -12,7 +12,7 @@ const _corBaixa = Color(0xFF34C759); // verde    — Referências
 const _classesAlta  = {'person'};
 const _classesMedia = {
   'door', 'elevator', 'elevator sign', 'stair sign',
-  'exit sign', 'fire alarm',
+  'exit sign', 'fire extinguisher','trash can', 'water dispenser', 'acessibility'
 };
 
 Color _corParaClasse(String className) {
