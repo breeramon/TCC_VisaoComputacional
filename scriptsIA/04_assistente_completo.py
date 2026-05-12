@@ -50,20 +50,20 @@ GENERO = {
 
 PRIORIDADES = {
     'Pessoa':                    (1, 0.4, 3.0, (0, 0, 255)),
-    'Porta':                     (2, 0.8, 5.0, (0, 165, 255)),
-    'Elevador':                  (2, 0.8, 5.0, (0, 165, 255)),
-    'Placa de escada':           (2, 0.8, 5.0, (0, 165, 255)),
+    'Porta':                     (2, 0.4, 5.0, (0, 165, 255)),
+    'Elevador':                  (2, 0.4, 5.0, (0, 165, 255)),
+    'Placa de escada':           (2, 0.4, 5.0, (0, 165, 255)),
     'Sinalização de saída':      (2, 0.8, 5.0, (0, 165, 255)),
     'Maçaneta':                  (2, 0.8, 5.0, (0, 165, 255)),
     'Maçaneta de empurrar':      (2, 0.8, 5.0, (0, 165, 255)),
     'Placa de elevador':         (2, 0.8, 5.0, (0, 165, 255)),
-    'Extintor de incêndio':      (2, 0.8, 5.0, (0, 165, 255)),
+    'Extintor de incêndio':      (2, 0.4, 5.0, (0, 165, 255)),
     'Símbolo de acessibilidade': (2, 0.8, 5.0, (0, 165, 255)),
-    'Alarme de incêndio':        (3, 1.0, 8.0, (0, 255, 0)),
-    'Lixeira':                   (3, 1.0, 8.0, (0, 255, 0)),
-    'Bebedouro':                 (3, 1.0, 8.0, (0, 255, 0)),
-    'Banheiro masculino':        (3, 1.0, 8.0, (0, 255, 0)),
-    'Banheiro feminino':         (3, 1.0, 8.0, (0, 255, 0)),
+    'Alarme de incêndio':        (3, 1.0, 5.0, (0, 255, 0)),
+    'Lixeira':                   (3, 0.4, 5.0, (0, 255, 0)),
+    'Bebedouro':                 (3, 0.8, 5.0, (0, 255, 0)),
+    'Banheiro masculino':        (3, 0.4, 5.0, (0, 255, 0)),
+    'Banheiro feminino':         (3, 0.4, 5.0, (0, 255, 0)),
 }
 PRIORIDADE_PADRAO = (3, 1.0, 8.0, (0, 255, 0))
 

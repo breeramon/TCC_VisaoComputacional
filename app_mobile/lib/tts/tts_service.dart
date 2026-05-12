@@ -24,10 +24,10 @@ class TtsService {
     'trash can':         (2, 0.4, 5.0),
     'water dispenser':   (2, 0.8, 5.0),
     'fire alarm':        (3, 1.0, 5.0),
-    'handle':            (3, 1.0, 5.0),
-    'push handle':       (3, 1.0, 5.0),
-    'men washroom':      (3, 1.0, 5.0),
-    'women washroom':    (3, 1.0, 5.0),
+    'handle':            (3, 0.8, 5.0),
+    'push handle':       (3, 0.8, 5.0),
+    'men washroom':      (3, 0.4, 5.0),
+    'women washroom':    (3, 0.4, 5.0),
   };
   static const (int, double, double) _padrao = (3, 1.0, 8.0);
 
