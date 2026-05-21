@@ -7,7 +7,7 @@ import '../tts/tts_service.dart';
 // Cores por prioridade (espelha a lógica do script Python)
 const _corAlta  = Color(0xFFFF3B30); // vermelho — Pessoa
 const _corMedia = Color(0xFFFF9500); // laranja  — Portas, Elevadores, Placas
-const _corBaixa = Color(0xFF34C759); // verde    — Referências
+const _corBaixa = Color(0xFF34C759); // verde    — Banheiros, Maçanetas, Outros
 
 const _classesAlta  = {'person'};
 const _classesMedia = {

@@ -27,7 +27,7 @@ class TtsService {
     'handle':            (3, 0.8, 5.0),
     'push handle':       (3, 0.8, 5.0),
     'men washroom':      (3, 0.4, 5.0),
-    'women washroom':    (3, 0.4, 5.0),
+    'women washrooom':    (3, 0.4, 5.0),
   };
   static const (int, double, double) _padrao = (3, 1.0, 8.0);
 
@@ -47,7 +47,7 @@ class TtsService {
     'handle':            'Maçaneta',
     'push handle':       'Maçaneta de empurrar',
     'men washroom':      'Banheiro masculino',
-    'women washroom':    'Banheiro feminino',
+    'women washrooom':    'Banheiro feminino',
   };
 
   // Gênero gramatical para concordância (chave = nome do modelo em inglês)
@@ -65,7 +65,7 @@ class TtsService {
     'handle':            'f', // Maçaneta
     'push handle':       'f', // Maçaneta
     'men washroom':      'm', // Banheiro
-    'women washroom':    'm', // Banheiro
+    'women washrooom':    'm', // Banheiro
     'acessibility':      'f', // Acessibilidade
   };
 
@@ -112,8 +112,8 @@ class TtsService {
       _emConfirmacao.putIfAbsent(obj, () => now);
     }
 
-    // Monta lista de anúncios (prioridade, texto)
-    final anuncios = <(int, String)>[];
+    // Coleta candidatos sem modificar estado — timers só atualizam se o TTS falar
+    final candidatos = <(int, String, String)>[]; // (nivel, texto, obj)
 
     for (final entry in _emConfirmacao.entries) {
       final obj = entry.key;
@@ -133,22 +133,24 @@ class TtsService {
       final texto = '$prefixo$nomePt$sufixo ${info.posicao}';
 
       if (estavel && naoRecente) {
-        anuncios.add((nivel, texto));
-        _ultimoAviso[obj] = now;
-        _ultimoNivelProximo[obj] = info.nivelProx;
+        candidatos.add((nivel, texto, obj));
       } else if (estavel && info.nivelProx > (_ultimoNivelProximo[obj] ?? 0)) {
         // Proximidade aumentou — alerta imediato mesmo sem reaviso periódico
-        anuncios.add((nivel, texto));
-        _ultimoAviso[obj] = now;
-        _ultimoNivelProximo[obj] = info.nivelProx;
+        candidatos.add((nivel, texto, obj));
       }
     }
 
-    if (anuncios.isEmpty || _speaking) return;
+    if (candidatos.isEmpty || _speaking) return;
+
+    // Só aqui atualiza os timers — garantindo que o TTS vai de fato falar
+    for (final (_, _, obj) in candidatos) {
+      _ultimoAviso[obj] = now;
+      _ultimoNivelProximo[obj] = vistos[obj]!.nivelProx;
+    }
 
     // Ordena por prioridade (1 = mais urgente)
-    anuncios.sort((a, b) => a.$1.compareTo(b.$1));
-    final textos = anuncios.map((e) => e.$2).toList();
+    candidatos.sort((a, b) => a.$1.compareTo(b.$1));
+    final textos = candidatos.map((e) => e.$2).toList();
 
     final mensagem = textos.length == 1
         ? '${textos[0]}.'

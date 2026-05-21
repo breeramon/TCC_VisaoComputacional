@@ -50,7 +50,7 @@ O modelo detecta 15 classes. Os nomes abaixo são os identificadores internos do
 | `handle` | Maçaneta | Baixa |
 | `push handle` | Maçaneta de empurrar | Baixa |
 | `men washroom` | Banheiro masculino | Baixa |
-| `women washroom` | Banheiro feminino | Baixa |
+| `women washrooom` | Banheiro feminino | Baixa |
 
 ---
 
@@ -85,6 +85,7 @@ TCC_VisaoComputacional/
 │   ├── 01_testeCamera.py          # Diagnóstico da câmera
 │   ├── 02_reconhecimentoYolo.py   # Visualização das detecções com FPS
 │   ├── 03_treinamento_yolo.py     # Fine-tuning do YOLOv8
+│   ├── 03_teste_voz_pyttsx3.py    # Teste de síntese de voz com pyttsx3
 │   ├── 04_assistente_completo.py  # Assistente de voz com reconhecimento em tempo real
 │   └── 05_exportar_tflite.py      # Exportação int8 e float16 para Android (640×640)
 │
