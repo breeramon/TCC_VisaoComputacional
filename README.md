@@ -32,12 +32,14 @@ O estudo de caso vai ser realizado no campus Farolândia da Universidade Tiraden
 
 ## Classes de Objetos Detectados
 
-O modelo detecta 15 classes. Os nomes abaixo são os identificadores internos do modelo (inglês) seguidos do que é anunciado em voz pelo app (português):
+O modelo detecta 17 classes. Os nomes abaixo são os identificadores internos do modelo (inglês) seguidos do que é anunciado em voz pelo app (português):
 
 | Classe no modelo | Anúncio em voz | Prioridade |
 |---|---|---|
 | `person` | Pessoa | Alta |
 | `door` | Porta | Média |
+| `Chair` | Cadeira | Média |
+| `table` | Mesa | Média |
 | `elevator` | Elevador | Média |
 | `elevator sign` | Placa de elevador | Média |
 | `stair sign` | Placa de escada | Média |
@@ -60,10 +62,10 @@ O dataset final utilizado nos treinamentos é uma junção dos quatro datasets p
 
 | Split | Imagens |
 |---|---|
-| Treino | 8.679 |
-| Validação | 826 |
-| Teste | 412 |
-| **Total** | **9.917** |
+| Treino | 11.847 |
+| Validação | 1.883 |
+| Teste | 1.008 |
+| **Total** | **14.738** |
 
 - **Dataset final (treinamento atual)** — [deteccao-de-objetos-faculdade](https://universe.roboflow.com/breno-s-workspace/deteccao-de-objetos-faculdade)
 
@@ -95,7 +97,7 @@ TCC_VisaoComputacional/
 │
 ├── runs/                          # Resultados dos treinamentos (pesos, métricas, gráficos)
 │   └── detect/modelos/
-│       └── treino_tcc_v20260429_0902/  # Melhor modelo treinado (mAP50: 76.6%)
+│       └── treino_tcc_v20260615_1028/  # Melhor modelo treinado (mAP50: 76.2%, 17 classes)
 │
 ├── exports/                       # Modelos exportados (ignorados pelo .gitignore)
 │   ├── best_int8.tflite           # Quantizado int8, 640×640 (~3 MB) — uso no app
@@ -151,50 +153,54 @@ O script gera automaticamente os dois formatos (int8 e float16) e os copia para 
 
 ## Modelo Treinado
 
-O modelo atual (`treino_tcc_v20260429_0902`) foi treinado com fine-tuning sobre o YOLOv8n com as seguintes métricas:
+O modelo atual (`treino_tcc_v20260615_1028`) foi treinado com fine-tuning sobre o YOLOv8n com as seguintes métricas:
 
 | Métrica | Valor |
 |---|---|
-| mAP50 | 76.6% |
-| mAP50-95 | 55.4% |
-| Precisão | 82.1% |
-| Recall | 71.7% |
-| Épocas | 90 (early stopping — melhor resultado no epoch 70) |
+| mAP50 | 76.2% |
+| mAP50-95 | 56.8% |
+| Precisão | 78.3% |
+| Recall | 71.0% |
+| Épocas | 50 |
 
 ### Métricas por classe
 
+Métricas avaliadas no split de teste (1.008 imagens, 2.858 instâncias):
+
 | Classe | Precisão | Recall | mAP50 | mAP50-95 |
 |---|---|---|---|---|
-| `acessibility` | 69.3% | 66.0% | 66.9% | 42.5% |
-| `door` | 79.6% | 80.9% | 85.9% | 70.6% |
-| `elevator` | 89.9% | 90.0% | 94.1% | 75.2% |
-| `elevator sign` | 84.5% | 28.4% | 40.3% | 21.9% |
-| `exit sign` | 75.8% | 79.5% | 82.2% | 51.2% |
-| `fire alarm` | 77.9% | 60.0% | 67.1% | 38.3% |
-| `fire extinguisher` | 93.3% | 86.3% | 91.9% | 70.8% |
-| `handle` | 78.2% | 61.6% | 74.1% | 36.1% |
-| `men washroom` | 82.9% | 87.4% | 79.1% | 55.5% |
-| `person` | 84.0% | 76.7% | 84.4% | 58.2% |
-| `push handle` | 77.9% | 62.0% | 71.1% | 45.8% |
-| `stair sign` | 71.7% | 44.0% | 52.5% | 42.2% |
-| `trash can` | 84.6% | 75.4% | 81.0% | 62.2% |
-| `water dispenser` | 88.4% | 86.7% | 87.7% | 83.1% |
-| `women washrooom` | 92.8% | 90.0% | 91.4% | 76.7% |
+| `Chair` | 71.3% | 55.3% | 64.0% | 40.7% |
+| `acessibility` | 72.0% | 79.4% | 77.8% | 58.4% |
+| `door` | 76.9% | 77.1% | 82.6% | 62.2% |
+| `elevator` | 74.1% | 60.0% | 70.2% | 52.4% |
+| `elevator sign` | 69.4% | 61.6% | 67.8% | 47.2% |
+| `exit sign` | 73.1% | 78.7% | 78.4% | 58.8% |
+| `fire alarm` | 87.0% | 81.5% | 86.7% | 69.0% |
+| `fire extinguisher` | 90.8% | 74.3% | 83.2% | 54.2% |
+| `handle` | 65.7% | 58.3% | 60.0% | 40.5% |
+| `men washroom` | 81.6% | 77.8% | 84.0% | 55.0% |
+| `person` | 84.0% | 78.5% | 85.0% | 55.6% |
+| `push handle` | 60.1% | 59.2% | 62.3% | 46.3% |
+| `stair sign` | 76.8% | 72.7% | 80.4% | 63.2% |
+| `table` | 76.9% | 33.7% | 44.1% | 31.5% |
+| `trash can` | 88.1% | 87.1% | 90.7% | 69.9% |
+| `water dispenser` | 96.6% | 92.3% | 97.9% | 93.0% |
+| `women washrooom` | 85.8% | 78.9% | 81.0% | 68.1% |
 
 > As métricas acima foram medidas na resolução de treinamento (640×640). As métricas na resolução de inferência do app variam conforme a resolução de exportação — ver tabela abaixo.
 
-> Classes com mAP50 abaixo de 60% (`elevator sign` e `stair sign`) possuem poucas imagens de validação e são candidatas a melhoria com coleta adicional de dados.
+> A classe `table` (mAP50: 44,1%) possui desempenho abaixo do ideal por limitação de imagens de treinamento (157 instâncias) e é candidata a melhoria com coleta adicional de dados.
 
 ### Comparativo de resoluções de exportação
 
-Validações realizadas com o mesmo modelo (`treino_tcc_v20260429_0902`) em diferentes resoluções de inferência:
+Validações realizadas com o mesmo modelo (`treino_tcc_v20260615_1028`) em diferentes resoluções de inferência:
 
 | Resolução | mAP50 | mAP50-95 | Precisão | Recall | FPS estimado (Redmi Note 10 e Redmi Note 13) |
 |---|---|---|---|---|---|
-| 256×256 | 60.5% | 40.8% | 69.6% | 56.8% | 7–15 FPS |
-| 320×320 | 68.5% | 47.9% | 81.2% | 61.0% | 4–9 FPS |
-| 416×416 | 73.0% | 52.2% | 81.9% | 66.7% | 2–4 FPS |
-| **640×640** | **76.6%** | **55.4%** | **82.1%** | **71.7%** | **~2 FPS** |
+| 256×256 | 54.2% | 36.0% | 68.5% | 49.7% | 7–15 FPS |
+| 320×320 | 61.2% | 43.5% | 74.5% | 55.0% | 4–9 FPS |
+| 416×416 | 68.9% | 50.2% | 72.6% | 65.0% | 2–4 FPS |
+| **640×640** | **76.2%** | **56.8%** | **78.3%** | **71.0%** | **~2 FPS** |
 
 > A resolução atual de exportação é **640×640** — mesma do treinamento, máxima qualidade de detecção.
 
@@ -204,6 +210,7 @@ Validações realizadas com o mesmo modelo (`treino_tcc_v20260429_0902`) em dife
 |---|---|---|---|---|
 | `best_int8.tflite` | Int8 quantizado | ~3 MB | 640×640 | App (padrão) |
 | `best_float16.tflite` | Float16 | ~6 MB | 640×640 | Fallback de precisão |
+| `best_float32.tflite` | Float32 | ~12 MB | 640×640 | Precisão máxima |
 
 Os arquivos `.tflite` e o `.pt` não estão versionados no repositório. Há duas formas de obtê-los:
 
@@ -218,10 +225,10 @@ O script baixa automaticamente `best_int8.tflite`, `best_float16.tflite` e `best
 **Opção 2 — Gerar a partir do modelo treinado:**
 
 ```bash
-python scriptsIA/05_exportar_tflite.py runs/detect/modelos/treino_tcc_v20260429_0902/weights/best.pt
+python scriptsIA/05_exportar_tflite.py runs/detect/modelos/treino_tcc_v20260615_1028/weights/best.pt
 ```
 
-Requer o arquivo `best.pt` disponível localmente em `runs/detect/modelos/treino_tcc_v20260429_0902/weights/`.
+Requer o arquivo `best.pt` disponível localmente em `runs/detect/modelos/treino_tcc_v20260615_1028/weights/`.
 
 ---
 
@@ -301,6 +308,7 @@ Para instalar em celulares Xiaomi (Redmi) que bloqueiam instalação via USB, tr
 | [v1.0-modelos](https://github.com/breeramon/TCC_VisaoComputacional/releases/tag/v1.0-modelos) | 256×256 | Primeira exportação — calibração int8 com dataset externo (coco8) |
 | [v2.0-modelos](https://github.com/breeramon/TCC_VisaoComputacional/releases/tag/v2.0-modelos) | 256×256 | Calibração int8 corrigida com 826 imagens reais do dataset próprio |
 | [v3.0-modelos](https://github.com/breeramon/TCC_VisaoComputacional/releases/tag/v3.0-modelos) | 640×640 | Resolução de exportação elevada para 640×640 (mesma do treinamento) |
+| [v4.0-modelos](https://github.com/breeramon/TCC_VisaoComputacional/releases/tag/v4.0-modelos) | 640×640 | Novo treinamento com 17 classes (adicionadas Chair e table) + APKs do app |
 
 ---
 
@@ -310,7 +318,7 @@ Para instalar em celulares Xiaomi (Redmi) que bloqueiam instalação via USB, tr
 
 - O modelo detecta **que existe** um objeto de uma classe, mas não lê conteúdo textual dentro dele. Placas de sala, por exemplo, são identificadas como presença de placa, sem distinção do número.
 - O desempenho de inferência é limitado pelo hardware do dispositivo. Celulares com GPU fraca (ex: Snapdragon 685) operam entre 2–5 FPS — ~2 FPS na resolução máxima (640×640) e até 15 FPS na resolução reduzida (256×256).
-- As classes `elevator sign` (mAP50: 40,3%) e `stair sign` (mAP50: 52,5%) ainda possuem desempenho abaixo do ideal por limitação de imagens de validação.
+- A classe `table` (mAP50: 44,1%) ainda possui desempenho abaixo do ideal por limitação de imagens de treinamento (157 instâncias).
 - O estudo de caso é restrito ao campus Farolândia da UNIT — o modelo pode ter desempenho reduzido em outros ambientes internos com características visuais distintas.
 
 ### Possibilidades de expansão
