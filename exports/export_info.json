@@ -1,16 +1,16 @@
 {
-  "data": "2026-05-06 15:45",
-  "modelo_origem": "runs/detect/modelos/treino_tcc_v20260429_0902/weights/best.pt",
+  "data": "2026-06-16 10:53",
+  "modelo_origem": "runs/detect/modelos/treino_tcc_v20260615_1028/weights/best.pt",
   "imgsz": 640,
   "tensorflow": "2.21.0",
   "arquivos": {
     "int8": {
-      "tamanho_mb": 3.21,
-      "md5": "131d8ca0"
+      "tamanho_mb": 3.2,
+      "md5": "353efb1c"
     },
     "float16": {
       "tamanho_mb": 5.92,
-      "md5": "efdbe1ea"
+      "md5": "2b2490a8"
     }
   }
 }

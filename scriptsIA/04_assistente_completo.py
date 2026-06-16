@@ -14,6 +14,7 @@ LIMIAR_MUITO_PROXIMO = 0.30
 # ── Tradução de classes ───────────────────────────────────────────────────────
 traducao_classes = {
     'door':              'Porta',
+    'Chair':             'Cadeira',
     'elevator':          'Elevador',
     'fire extinguisher': 'Extintor de incêndio',
     'trash can':         'Lixeira',
@@ -25,6 +26,7 @@ traducao_classes = {
     'push handle':       'Maçaneta de empurrar',
     'acessibility':      'Símbolo de acessibilidade',
     'elevator sign':     'Placa de elevador',
+    'table':             'Mesa',
     'fire alarm':        'Alarme de incêndio',
     'men washroom':      'Banheiro masculino',
     'women washrooom':   'Banheiro feminino',
@@ -32,6 +34,7 @@ traducao_classes = {
 
 GENERO = {
     'Porta':                      'f',
+    'Cadeira':                   'f',
     'Elevador':                   'm',
     'Extintor de incêndio':       'm',
     'Lixeira':                    'f',
@@ -43,6 +46,7 @@ GENERO = {
     'Maçaneta de empurrar':       'f',
     'Símbolo de acessibilidade':  'm',
     'Placa de elevador':          'f',
+    'Mesa':                       'f',
     'Alarme de incêndio':         'm',
     'Banheiro masculino':         'm',
     'Banheiro feminino':          'm',
@@ -51,6 +55,7 @@ GENERO = {
 PRIORIDADES = {
     'Pessoa':                    (1, 0.4, 3.0, (0, 0, 255)),
     'Porta':                     (2, 0.4, 5.0, (0, 165, 255)),
+    'Cadeira':                   (2, 0.4, 5.0, (0, 165, 255)),
     'Elevador':                  (2, 0.4, 5.0, (0, 165, 255)),
     'Placa de escada':           (2, 0.4, 5.0, (0, 165, 255)),
     'Sinalização de saída':      (2, 0.8, 5.0, (0, 165, 255)),
@@ -59,6 +64,7 @@ PRIORIDADES = {
     'Símbolo de acessibilidade': (2, 0.8, 5.0, (0, 165, 255)),
     'Lixeira':                   (2, 0.4, 5.0, (0, 165, 255)),
     'Bebedouro':                 (2, 0.8, 5.0, (0, 165, 255)),
+    'Mesa':                      (2, 0.4, 5.0, (0, 165, 255)),
     'Alarme de incêndio':        (3, 1.0, 5.0, (0, 255, 0)),
     'Maçaneta':                  (3, 0.8, 5.0, (0, 255, 0)),
     'Maçaneta de empurrar':      (3, 0.8, 5.0, (0, 255, 0)),
@@ -209,7 +215,7 @@ def iniciar_assistente():
         novos_objetos.sort(key=lambda x: x[0])
         textos = [t for _, t in novos_objetos]
 
-        # ✅ Só coloca na fila se ela estiver vazia (evita acúmulo)
+        # Só coloca na fila se ela estiver vazia (evita acúmulo)
         if textos and fila_fala.empty():
             msg = f"{textos[0]}." if len(textos) == 1 else f"{', '.join(textos[:-1])} e {textos[-1]}."
             fila_fala.put(msg)

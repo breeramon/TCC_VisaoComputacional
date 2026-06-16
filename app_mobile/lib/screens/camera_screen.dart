@@ -11,7 +11,7 @@ const _corBaixa = Color(0xFF34C759); // verde    — Banheiros, Maçanetas, Outr
 
 const _classesAlta  = {'person'};
 const _classesMedia = {
-  'door', 'elevator', 'elevator sign', 'stair sign',
+  'door', 'Chair', 'table', 'elevator', 'elevator sign', 'stair sign',
   'exit sign', 'fire extinguisher','trash can', 'water dispenser', 'acessibility'
 };
 

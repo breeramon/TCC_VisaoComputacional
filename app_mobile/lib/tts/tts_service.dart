@@ -15,6 +15,8 @@ class TtsService {
   static const Map<String, (int, double, double)> _prioridades = {
     'person':            (1, 0.4, 3.0),
     'door':              (2, 0.4, 5.0),
+    'Chair':             (2, 0.4, 5.0),
+    'table':             (2, 0.4, 5.0),
     'elevator':          (2, 0.4, 5.0),
     'elevator sign':     (2, 0.8, 5.0),
     'stair sign':        (2, 0.4, 5.0),
@@ -35,6 +37,8 @@ class TtsService {
   static const Map<String, String> _nomePt = {
     'person':            'Pessoa',
     'door':              'Porta',
+    'Chair':             'Cadeira',
+    'table':             'Mesa',
     'elevator':          'Elevador',
     'elevator sign':     'Placa de elevador',
     'stair sign':        'Placa de escada',
@@ -54,6 +58,8 @@ class TtsService {
   static const Map<String, String> _genero = {
     'person':            'f', // Pessoa
     'door':              'f', // Porta
+    'Chair':             'f', // Cadeira
+    'table':             'f', // Mesa
     'elevator':          'm', // Elevador
     'elevator sign':     'f', // Placa
     'stair sign':        'f', // Placa
