@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -5,8 +8,15 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Chave de upload da Play Store: android/key.properties (fora do Git)
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
 android {
-    namespace = "br.edu.unit.tcc.nav_indoor_tcc"
+    namespace = "io.github.breeramon.vozguia"
     compileSdk = 36
     ndkVersion = "28.2.13676358"
 
@@ -20,9 +30,9 @@ android {
     }
 
     defaultConfig {
-        applicationId = "br.edu.unit.tcc.nav_indoor_tcc"
+        applicationId = "io.github.breeramon.vozguia"
         minSdk = 24        // flutter_tts exige mínimo 24
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 36    // exigido pela Play Store desde 31/08/2026
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
@@ -32,9 +42,24 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            // Sem key.properties, cai na chave de debug (só para testes locais)
+            signingConfig = if (keystorePropertiesFile.exists())
+                signingConfigs.getByName("release")
+            else
+                signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

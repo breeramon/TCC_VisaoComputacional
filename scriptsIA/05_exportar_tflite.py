@@ -63,8 +63,10 @@ def exportar(int8: bool):
     md5 = hash_arquivo(destino)
     print(f"  exports/  → {destino}  ({mb:.1f} MB  |  MD5: {md5})")
 
-    # ✅ Só copia para Android se a pasta existir
-    if os.path.exists(ASSETS_ANDROID):
+    # Só o int8 vai para o APK; o float16 fica em exports/ para comparação
+    if not int8:
+        print("  Android   → (float16 não é copiado para o APK)")
+    elif os.path.exists(ASSETS_ANDROID):
         shutil.copy2(destino, os.path.join(ASSETS_ANDROID, nome))
         print(f"  Android   → {ASSETS_ANDROID}/{nome}")
     else:

@@ -20,8 +20,7 @@ DESTINOS = {
         "app_mobile/android/app/src/main/assets/best_int8.tflite",
     ],
     "best_float16.tflite": [
-        "exports/best_float16.tflite",
-        "app_mobile/android/app/src/main/assets/best_float16.tflite",
+        "exports/best_float16.tflite",  # fica fora do APK (só para comparação)
     ],
     "best.pt": [
         "exports/best.pt",

@@ -2,8 +2,6 @@
 
     <!-- Permissão de câmera para captura de vídeo em tempo real -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <!-- Permissão de áudio para o TTS funcionar em fones de ouvido Bluetooth -->
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <uses-feature android:name="android.hardware.camera" android:required="true" />
 

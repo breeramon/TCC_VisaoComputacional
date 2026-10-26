@@ -1,5 +1,5 @@
-name: nav_indoor_tcc
-description: "Sistema de Navegação Indoor por Voz para Pessoas com Deficiência Visual - TCC UNIT"
+name: vozguia
+description: "VozGuia — avisos por voz de obstáculos e pontos de referência para pessoas com deficiência visual"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

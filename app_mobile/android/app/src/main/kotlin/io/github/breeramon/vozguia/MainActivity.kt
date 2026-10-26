@@ -1,4 +1,4 @@
-package br.edu.unit.tcc.nav_indoor_tcc
+package io.github.breeramon.vozguia
 
 import io.flutter.embedding.android.FlutterActivity
 
