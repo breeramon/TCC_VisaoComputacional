@@ -3,13 +3,16 @@ import '../detector/object_detector.dart';
 
 /// Gerencia a síntese de voz com lógica de:
 /// - Confirmação temporal (objeto precisa ser visível por X segundos)
+/// - Tolerância a falhas de detecção (objeto só "sai" após sumir por um tempo)
 /// - Reaviso periódico
-/// - Alerta de proximidade crescente
-/// - Prioridade por classe
+/// - Alerta de proximidade crescente, com interrupção para alertas urgentes
+/// - Prioridade por classe e limite de itens por aviso
 /// - Concordância de gênero em português
 class TtsService {
   final FlutterTts _tts = FlutterTts();
   bool _speaking = false;
+  bool _falandoUrgente = false;
+  bool _ativo = true;
 
   // Chaves = nomes do modelo (inglês) — valores = (prioridade, segsConfirmação, segsReaviso)
   static const Map<String, (int, double, double)> _prioridades = {
@@ -29,7 +32,7 @@ class TtsService {
     'handle':            (3, 0.8, 5.0),
     'push handle':       (3, 0.8, 5.0),
     'men washroom':      (3, 0.4, 5.0),
-    'women washrooom':    (3, 0.4, 5.0),
+    'women washrooom':   (3, 0.4, 5.0),
   };
   static const (int, double, double) _padrao = (3, 1.0, 8.0);
 
@@ -51,7 +54,7 @@ class TtsService {
     'handle':            'Maçaneta',
     'push handle':       'Maçaneta de empurrar',
     'men washroom':      'Banheiro masculino',
-    'women washrooom':    'Banheiro feminino',
+    'women washrooom':   'Banheiro feminino',
   };
 
   // Gênero gramatical para concordância (chave = nome do modelo em inglês)
@@ -71,15 +74,22 @@ class TtsService {
     'handle':            'f', // Maçaneta
     'push handle':       'f', // Maçaneta
     'men washroom':      'm', // Banheiro
-    'women washrooom':    'm', // Banheiro
+    'women washrooom':   'm', // Banheiro
     'acessibility':      'f', // Acessibilidade
   };
 
   static const double _limiarProximo = 0.15;
   static const double _limiarMuitoProximo = 0.30;
 
+  /// Quantos objetos, no máximo, entram em um mesmo aviso.
+  static const int _maxItensPorAviso = 2;
+
+  /// Tempo que um objeto pode sumir do quadro sem perder a confirmação.
+  static const Duration _toleranciaSumico = Duration(milliseconds: 500);
+
   // Estado interno de rastreamento
   final Map<String, DateTime> _emConfirmacao = {};
+  final Map<String, DateTime> _vistoPorUltimo = {};
   final Map<String, DateTime> _ultimoAviso = {};
   final Map<String, int> _ultimoNivelProximo = {};
 
@@ -88,12 +98,39 @@ class TtsService {
     await _tts.setSpeechRate(0.5);
     await _tts.setVolume(1.0);
     await _tts.setPitch(1.0);
-    _tts.setCompletionHandler(() => _speaking = false);
-    _tts.setErrorHandler((_) => _speaking = false);
+    // Sem setCancelHandler de propósito: quando a fala é interrompida,
+    // o próprio serviço atualiza o estado (ver _interromper).
+    _tts.setCompletionHandler(_fimDaFala);
+    _tts.setErrorHandler((_) => _fimDaFala());
+  }
+
+  void _fimDaFala() {
+    _speaking = false;
+    _falandoUrgente = false;
+  }
+
+  /// Para de anunciar e esquece o que estava vendo.
+  Future<void> pausar() async {
+    _ativo = false;
+    _limparEstado();
+    await _interromper();
+  }
+
+  void retomar() {
+    _limparEstado();
+    _ativo = true;
+  }
+
+  /// Fala uma mensagem do sistema (ex.: "Detecção pausada"), interrompendo o que estiver falando.
+  Future<void> falarAgora(String texto) async {
+    await _interromper();
+    _speaking = true;
+    await _tts.speak(texto);
   }
 
   /// Recebe a lista de detecções do frame atual e decide o que falar.
   void processDetections(List<Detection> detections) {
+    if (!_ativo) return;
     final now = DateTime.now();
 
     // Monta mapa: className (inglês) → (posicao, area, nivelProximidade)
@@ -109,65 +146,99 @@ class TtsService {
       }
     }
 
-    // Remove do estado objetos que saíram do frame (reset dos timers)
-    _emConfirmacao.removeWhere((k, _) => !vistos.containsKey(k));
-    _ultimoNivelProximo.removeWhere((k, _) => !vistos.containsKey(k));
-
-    // Registra primeira vez que cada objeto apareceu
+    // Registra quando cada objeto foi visto
     for (final obj in vistos.keys) {
+      _vistoPorUltimo[obj] = now;
       _emConfirmacao.putIfAbsent(obj, () => now);
     }
 
-    // Coleta candidatos sem modificar estado — timers só atualizam se o TTS falar
-    final candidatos = <(int, String, String)>[]; // (nivel, texto, obj)
+    // Só considera que o objeto saiu depois de sumir por mais que a tolerância
+    final sumidos = _vistoPorUltimo.entries
+        .where((e) => now.difference(e.value) > _toleranciaSumico)
+        .map((e) => e.key)
+        .toList();
+    for (final obj in sumidos) {
+      _vistoPorUltimo.remove(obj);
+      _emConfirmacao.remove(obj);
+      _ultimoNivelProximo.remove(obj);
+    }
 
-    for (final entry in _emConfirmacao.entries) {
-      final obj = entry.key;
-      final info = vistos[obj]!;
+    // Coleta candidatos sem modificar estado — timers só atualizam se o TTS falar
+    final candidatos = <({int nivel, bool urgente, String texto, String obj})>[];
+
+    for (final MapEntry(key: obj, value: info) in vistos.entries) {
+      final inicio = _emConfirmacao[obj];
+      if (inicio == null) continue;
       final (nivel, tConfirm, tReaviso) = _prioridades[obj] ?? _padrao;
 
-      final estavel = now.difference(entry.value).inMilliseconds >=
-          (tConfirm * 1000).toInt();
+      final estavel =
+          now.difference(inicio).inMilliseconds >= (tConfirm * 1000).toInt();
 
       final ultimoAv = _ultimoAviso[obj];
       final naoRecente = ultimoAv == null ||
           now.difference(ultimoAv).inMilliseconds >= (tReaviso * 1000).toInt();
 
-      final nomePt = _nomePt[obj] ?? obj;
-      final prefixo = _prefixoProximidade(info.nivelProx);
-      final sufixo = _sufixoProximidade(info.nivelProx, obj);
-      final texto = '$prefixo$nomePt$sufixo ${info.posicao}';
+      // Proximidade aumentou — alerta imediato mesmo sem reaviso periódico
+      final aproximou = info.nivelProx > (_ultimoNivelProximo[obj] ?? 0);
 
-      if (estavel && naoRecente) {
-        candidatos.add((nivel, texto, obj));
-      } else if (estavel && info.nivelProx > (_ultimoNivelProximo[obj] ?? 0)) {
-        // Proximidade aumentou — alerta imediato mesmo sem reaviso periódico
-        candidatos.add((nivel, texto, obj));
+      if (estavel && (naoRecente || aproximou)) {
+        final nomePt = _nomePt[obj] ?? obj;
+        final prefixo = _prefixoProximidade(info.nivelProx);
+        final sufixo = _sufixoProximidade(info.nivelProx, obj);
+        candidatos.add((
+          nivel: nivel,
+          urgente: info.nivelProx == 2,
+          texto: '$prefixo$nomePt$sufixo ${info.posicao}',
+          obj: obj,
+        ));
       }
     }
 
-    if (candidatos.isEmpty || _speaking) return;
+    if (candidatos.isEmpty) return;
 
-    // Só aqui atualiza os timers — garantindo que o TTS vai de fato falar
-    for (final (_, _, obj) in candidatos) {
-      _ultimoAviso[obj] = now;
-      _ultimoNivelProximo[obj] = vistos[obj]!.nivelProx;
+    final temUrgente = candidatos.any((c) => c.urgente);
+    if (_speaking) {
+      // Só um alerta urgente interrompe uma fala comum
+      if (!temUrgente || _falandoUrgente) return;
     }
 
-    // Ordena por prioridade (1 = mais urgente)
-    candidatos.sort((a, b) => a.$1.compareTo(b.$1));
-    final textos = candidatos.map((e) => e.$2).toList();
+    // Urgentes primeiro, depois por prioridade (1 = mais urgente)
+    candidatos.sort((a, b) {
+      if (a.urgente != b.urgente) return a.urgente ? -1 : 1;
+      return a.nivel.compareTo(b.nivel);
+    });
+    final escolhidos = candidatos.take(_maxItensPorAviso).toList();
 
+    // Só aqui atualiza os timers — apenas dos objetos que serão falados
+    for (final c in escolhidos) {
+      _ultimoAviso[c.obj] = now;
+      _ultimoNivelProximo[c.obj] = vistos[c.obj]!.nivelProx;
+    }
+
+    final textos = escolhidos.map((c) => c.texto).toList();
     final mensagem = textos.length == 1
         ? '${textos[0]}.'
         : '${textos.sublist(0, textos.length - 1).join(', ')} e ${textos.last}.';
 
-    _speak(mensagem);
+    _speak(mensagem, urgente: escolhidos.any((c) => c.urgente));
   }
 
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
+
+  void _limparEstado() {
+    _emConfirmacao.clear();
+    _vistoPorUltimo.clear();
+    _ultimoNivelProximo.clear();
+  }
+
+  Future<void> _interromper() async {
+    if (_speaking) {
+      await _tts.stop();
+    }
+    _fimDaFala();
+  }
 
   String _calcularPosicao(double x1, double x2) {
     final centro = (x1 + x2) / 2;
@@ -195,9 +266,13 @@ class TtsService {
     return feminino ? ' próxima' : ' próximo';
   }
 
-  Future<void> _speak(String text) async {
-    if (_speaking) return;
+  Future<void> _speak(String text, {required bool urgente}) async {
+    if (_speaking) {
+      // Chegou aqui com fala em andamento = alerta urgente interrompendo
+      await _interromper();
+    }
     _speaking = true;
+    _falandoUrgente = urgente;
     await _tts.speak(text);
   }
 

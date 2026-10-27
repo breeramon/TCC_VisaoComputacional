@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:ultralytics_yolo/ultralytics_yolo.dart';
 import 'package:ultralytics_yolo/widgets/yolo_controller.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import '../detector/object_detector.dart';
 import '../tts/tts_service.dart';
+import 'sobre_screen.dart';
 
 // Cores por prioridade (espelha a lógica do script Python)
 const _corAlta  = Color(0xFFFF3B30); // vermelho — Pessoa
@@ -12,7 +14,7 @@ const _corBaixa = Color(0xFF34C759); // verde    — Banheiros, Maçanetas, Outr
 const _classesAlta  = {'person'};
 const _classesMedia = {
   'door', 'Chair', 'table', 'elevator', 'elevator sign', 'stair sign',
-  'exit sign', 'fire extinguisher','trash can', 'water dispenser', 'acessibility'
+  'exit sign', 'fire extinguisher', 'trash can', 'water dispenser', 'acessibility'
 };
 
 Color _corParaClasse(String className) {
@@ -21,9 +23,16 @@ Color _corParaClasse(String className) {
   return _corBaixa;
 }
 
+// Pedido de GPU — o plugin cai para CPU sozinho se o delegate falhar.
+// Para saber o que foi usado de fato: adb logcat | findstr ObjectDetector
 const _useGpu = true;
 
-// Limita a 15 inferências/segundo na GPU — suficiente para navegação e
+const _confianca = 0.6;
+const _iou = 0.45;
+// Limita a 7 detecções por frame — evita processar dezenas de bboxes desnecessárias
+const _maxDeteccoes = 7;
+
+// Limita a 15 inferências/segundo — suficiente para navegação e
 // reduz consumo de CPU/bateria em dispositivos fracos
 const _streamingConfig = YOLOStreamingConfig(inferenceFrequency: 15);
 
@@ -34,7 +43,7 @@ class CameraScreen extends StatefulWidget {
   State<CameraScreen> createState() => _CameraScreenState();
 }
 
-class _CameraScreenState extends State<CameraScreen> {
+class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver {
   final TtsService _tts = TtsService();
   final YOLOViewController _yoloController = YOLOViewController();
 
@@ -43,15 +52,75 @@ class _CameraScreenState extends State<CameraScreen> {
   int _frameCount = 0;
   DateTime _fpsTimer = DateTime.now();
 
+  bool _pausado = false;
+  bool _emSegundoPlano = false;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _tts.init();
-    // Limita a 7 detecções por frame — evita processar dezenas de bboxes desnecessárias
-    _yoloController.setNumItemsThreshold(7);
+    // Guardados no controller e aplicados quando a câmera nativa inicializa
+    _yoloController.setThresholds(
+      confidenceThreshold: _confianca,
+      iouThreshold: _iou,
+      numItemsThreshold: _maxDeteccoes,
+    );
+    // Mantém a tela ligada: se ela apagar, a câmera para
+    WakelockPlus.enable();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _emSegundoPlano = false;
+      if (!_pausado) {
+        _tts.retomar();
+        WakelockPlus.enable();
+      }
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      if (!_emSegundoPlano) {
+        _emSegundoPlano = true;
+        _tts.pausar();
+      }
+    }
+  }
+
+  Future<void> _alternarPausa() async {
+    if (_pausado) {
+      setState(() => _pausado = false);
+      _tts.retomar();
+      await _yoloController.restartCamera();
+      WakelockPlus.enable();
+      await _tts.falarAgora('Detecção retomada');
+    } else {
+      setState(() {
+        _pausado = true;
+        _results = [];
+      });
+      await _tts.pausar();
+      await _yoloController.stop();
+      WakelockPlus.disable();
+      await _tts.falarAgora('Detecção pausada. Toque duas vezes para retomar.');
+    }
+  }
+
+  Future<void> _abrirSobre() async {
+    final estavaPausado = _pausado;
+    if (!estavaPausado) await _alternarPausa();
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const SobreScreen()),
+    );
+    if (!mounted) return;
+    if (!estavaPausado) await _alternarPausa();
   }
 
   void _onResults(List<YOLOResult> results) {
+    if (_pausado || _emSegundoPlano) return;
+
     // Calcula FPS
     _frameCount++;
     final agora = DateTime.now();
@@ -79,6 +148,8 @@ class _CameraScreenState extends State<CameraScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    WakelockPlus.disable();
     _tts.dispose();
     super.dispose();
   }
@@ -91,29 +162,68 @@ class _CameraScreenState extends State<CameraScreen> {
         fit: StackFit.expand,
         children: [
           // YOLOView: câmera + inferência nativa com GPU
-          YOLOView(
-            modelPath: 'best_int8',
-            task: YOLOTask.detect,
-            controller: _yoloController,
-            streamingConfig: _streamingConfig,
-            confidenceThreshold: 0.6,
-            iouThreshold: 0.45,
-            useGpu: _useGpu,
-            showOverlays: false,
-            showNativeUI: false,
-            onResult: _onResults,
+          ExcludeSemantics(
+            child: YOLOView(
+              modelPath: 'best_int8',
+              task: YOLOTask.detect,
+              controller: _yoloController,
+              streamingConfig: _streamingConfig,
+              confidenceThreshold: _confianca,
+              iouThreshold: _iou,
+              useGpu: _useGpu,
+              showOverlays: false,
+              showNativeUI: false,
+              onResult: _onResults,
+            ),
           ),
 
           // Overlay com bounding boxes coloridas por prioridade
-          if (_results.isNotEmpty)
-            RepaintBoundary(
-              child: CustomPaint(
-                painter: _DetectionPainter(results: _results),
+          if (_results.isNotEmpty && !_pausado)
+            ExcludeSemantics(
+              child: RepaintBoundary(
+                child: CustomPaint(
+                  painter: _DetectionPainter(results: _results),
+                ),
               ),
             ),
 
+          // Área de toque da tela inteira: toque duplo pausa/retoma.
+          // Com TalkBack, o leitor anuncia o rótulo e o toque duplo ativa onTap.
+          Semantics(
+            button: true,
+            label: _pausado ? 'Retomar detecção' : 'Pausar detecção',
+            hint: _pausado ? 'Os avisos estão pausados' : 'Os avisos estão ativos',
+            onTap: _alternarPausa,
+            excludeSemantics: true,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onDoubleTap: _alternarPausa,
+              child: _pausado ? _buildPausado() : const SizedBox.expand(),
+            ),
+          ),
+
           // Barra de status no topo
           _buildStatusBar(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPausado() {
+    return Container(
+      color: Colors.black87,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.all(32),
+      child: const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.pause_circle_filled, color: Colors.white, size: 96),
+          SizedBox(height: 24),
+          Text(
+            'Pausado\nToque duas vezes para retomar',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white, fontSize: 24),
+          ),
         ],
       ),
     );
@@ -125,28 +235,43 @@ class _CameraScreenState extends State<CameraScreen> {
       left: 12,
       right: 12,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.only(left: 12),
         decoration: BoxDecoration(
           color: Colors.black54,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
-            const Icon(Icons.fiber_manual_record,
-                color: Colors.greenAccent, size: 10),
+            ExcludeSemantics(
+              child: Icon(Icons.fiber_manual_record,
+                  color: _pausado ? Colors.white54 : Colors.greenAccent, size: 10),
+            ),
             const SizedBox(width: 6),
             Expanded(
-              child: Text(
-                _results.isEmpty
-                    ? 'Nenhum objeto detectado'
-                    : '${_results.length} objeto(s) detectado(s)',
-                style: const TextStyle(color: Colors.white, fontSize: 11),
-                overflow: TextOverflow.ellipsis,
+              child: ExcludeSemantics(
+                child: Text(
+                  _pausado
+                      ? 'Pausado'
+                      : _results.isEmpty
+                          ? 'Nenhum objeto detectado'
+                          : '${_results.length} objeto(s) detectado(s)',
+                  style: const TextStyle(color: Colors.white, fontSize: 11),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ),
-            Text(
-              '${_useGpu ? "GPU" : "CPU"} · $_fps fps',
-              style: const TextStyle(color: Colors.white70, fontSize: 11),
+            ExcludeSemantics(
+              child: Text(
+                '${_useGpu ? "GPU" : "CPU"} · $_fps fps',
+                style: const TextStyle(color: Colors.white70, fontSize: 11),
+              ),
+            ),
+            IconButton(
+              onPressed: _abrirSobre,
+              icon: const Icon(Icons.info_outline, color: Colors.white),
+              tooltip: 'Sobre o VozGuia',
+              iconSize: 28,
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             ),
           ],
         ),

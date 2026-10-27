@@ -42,6 +42,15 @@ dependencies:
   # Permissões em tempo de execução (câmera, microfone)
   permission_handler: ^11.3.0
 
+  # Mantém a tela ligada enquanto a câmera está ativa
+  wakelock_plus: ^1.2.8
+
+  # Guarda preferências no aparelho (ex.: aviso de segurança já aceito)
+  shared_preferences: ^2.3.2
+
+  # Abre links da tela "Sobre" (código-fonte, datasets)
+  url_launcher: ^6.3.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
