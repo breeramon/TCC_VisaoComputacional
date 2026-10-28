@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../detector/object_detector.dart';
 
@@ -78,8 +79,33 @@ class TtsService {
     'acessibility':      'f', // Acessibilidade
   };
 
-  static const double _limiarProximo = 0.15;
-  static const double _limiarMuitoProximo = 0.30;
+  // Limiares de proximidade por classe, em fração da área do quadro ocupada
+  // pela caixa: (próximo, muito próximo). Objetos grandes (porta, elevador)
+  // ocupam muito do quadro mesmo de longe; placas e maçanetas são pequenas.
+  // `null` em "muito próximo" = a classe nunca vira alerta urgente (placas não
+  // são obstáculos). Valores iniciais — calibrar com testes no celular.
+  static const Map<String, (double, double?)> _limiaresProximidade = {
+    // Obstáculos
+    'person':            (0.15, 0.30),
+    'Chair':             (0.10, 0.25),
+    'table':             (0.15, 0.35),
+    'trash can':         (0.06, 0.15),
+    'water dispenser':   (0.08, 0.20),
+    'door':              (0.35, 0.60),
+    'elevator':          (0.35, 0.60),
+    // Referências na parede (nunca urgentes)
+    'fire extinguisher': (0.04, null),
+    'fire alarm':        (0.02, null),
+    'elevator sign':     (0.03, null),
+    'stair sign':        (0.03, null),
+    'exit sign':         (0.03, null),
+    'acessibility':      (0.03, null),
+    'men washroom':      (0.03, null),
+    'women washrooom':   (0.03, null),
+    'handle':            (0.02, null),
+    'push handle':       (0.02, null),
+  };
+  static const (double, double?) _limiaresPadrao = (0.15, 0.30);
 
   /// Quantos objetos, no máximo, entram em um mesmo aviso.
   static const int _maxItensPorAviso = 2;
@@ -139,7 +165,7 @@ class TtsService {
     for (final d in detections) {
       final posicao = _calcularPosicao(d.x1, d.x2);
       final area = (d.x2 - d.x1) * (d.y2 - d.y1);
-      final nivelProx = _calcularProximidade(area);
+      final nivelProx = nivelProximidade(d.className, area);
 
       if (!vistos.containsKey(d.className) || area > vistos[d.className]!.area) {
         vistos[d.className] = (posicao: posicao, area: area, nivelProx: nivelProx);
@@ -247,9 +273,14 @@ class TtsService {
     return 'à sua direita';
   }
 
-  int _calcularProximidade(double area) {
-    if (area >= _limiarMuitoProximo) return 2;
-    if (area >= _limiarProximo) return 1;
+  /// Nível de proximidade de um objeto: 0 = longe, 1 = próximo, 2 = muito próximo.
+  /// [area] é a fração do quadro ocupada pela caixa (0 a 1).
+  @visibleForTesting
+  static int nivelProximidade(String classe, double area) {
+    final (proximo, muitoProximo) =
+        _limiaresProximidade[classe] ?? _limiaresPadrao;
+    if (muitoProximo != null && area >= muitoProximo) return 2;
+    if (area >= proximo) return 1;
     return 0;
   }
 
