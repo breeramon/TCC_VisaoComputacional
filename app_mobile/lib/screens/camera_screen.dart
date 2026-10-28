@@ -45,6 +45,10 @@ const _maxDeteccoes = 7;
 // reduz consumo de CPU/bateria em dispositivos fracos
 const _streamingConfig = YOLOStreamingConfig(inferenceFrequency: 15);
 
+// Durante a pausa a câmera continua aberta (ver comentário em _CameraScreenState),
+// então reduz a inferência a 1 por segundo para economizar bateria
+const _streamingConfigPausado = YOLOStreamingConfig(inferenceFrequency: 1);
+
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
 
@@ -65,11 +69,14 @@ class _CameraScreenState extends State<CameraScreen>
   bool _pausado = false;
   bool _emSegundoPlano = false;
 
-  // Muda a cada retomada para forçar a criação de uma YOLOView nova.
-  // No ultralytics_yolo 0.2.0, controller.stop() também descarta o modelo e os
-  // callbacks, e restartCamera() religa só a câmera — a detecção não volta.
-  // Por isso a pausa tira a YOLOView da árvore e a retomada cria outra.
-  int _sessaoCamera = 0;
+  // Uma única YOLOView fica montada o tempo todo. No ultralytics_yolo 0.2.0:
+  // - controller.stop() descarta o modelo e os callbacks, e restartCamera()
+  //   religa só a câmera (a detecção não volta);
+  // - cada YOLOView se registra no ciclo de vida da Activity e nunca se
+  //   desregistra; recriar a view deixa "zumbis" que roubam a câmera quando
+  //   o app volta do segundo plano (tela preta ou congelada).
+  // Por isso a pausa só ignora os resultados e reduz a frequência de inferência.
+  // Rever ao atualizar o plugin (0.7.x já remove o observer no dispose).
 
   @override
   void initState() {
@@ -108,11 +115,11 @@ class _CameraScreenState extends State<CameraScreen>
     if (_pausado) {
       setState(() {
         _pausado = false;
-        _sessaoCamera++;
         _frameCount = 0;
         _fps = 0;
         _fpsTimer = DateTime.now();
       });
+      await _yoloController.setStreamingConfig(_streamingConfig);
       _tts.retomar();
       WakelockPlus.enable();
       await _tts.falarAgora('Detecção retomada');
@@ -121,7 +128,7 @@ class _CameraScreenState extends State<CameraScreen>
         _pausado = true;
         _results = [];
       });
-      // Remover a YOLOView da árvore (setState acima) libera câmera e modelo
+      await _yoloController.setStreamingConfig(_streamingConfigPausado);
       await _tts.pausar();
       WakelockPlus.disable();
       await _tts.falarAgora('Detecção pausada. Toque duas vezes para retomar.');
@@ -186,23 +193,21 @@ class _CameraScreenState extends State<CameraScreen>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // YOLOView: câmera + inferência nativa com GPU (fora da árvore quando pausado)
-          if (!_pausado)
-            ExcludeSemantics(
-              child: YOLOView(
-                key: ValueKey(_sessaoCamera),
-                modelPath: 'best_int8',
-                task: YOLOTask.detect,
-                controller: _yoloController,
-                streamingConfig: _streamingConfig,
-                confidenceThreshold: _confianca,
-                iouThreshold: _iou,
-                useGpu: _useGpu,
-                showOverlays: false,
-                showNativeUI: false,
-                onResult: _onResults,
-              ),
+          // YOLOView: câmera + inferência nativa com GPU (sempre montada)
+          ExcludeSemantics(
+            child: YOLOView(
+              modelPath: 'best_int8',
+              task: YOLOTask.detect,
+              controller: _yoloController,
+              streamingConfig: _streamingConfig,
+              confidenceThreshold: _confianca,
+              iouThreshold: _iou,
+              useGpu: _useGpu,
+              showOverlays: false,
+              showNativeUI: false,
+              onResult: _onResults,
             ),
+          ),
 
           // Overlay com bounding boxes coloridas por prioridade
           if (_results.isNotEmpty && !_pausado)
@@ -240,7 +245,7 @@ class _CameraScreenState extends State<CameraScreen>
 
   Widget _buildPausado() {
     return Container(
-      color: Colors.black87,
+      color: Colors.black,
       alignment: Alignment.center,
       padding: const EdgeInsets.all(32),
       child: const Column(
