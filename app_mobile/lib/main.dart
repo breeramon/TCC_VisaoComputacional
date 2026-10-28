@@ -25,9 +25,7 @@ class VozGuiaApp extends StatelessWidget {
       title: 'VozGuia',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
-        colorScheme: ColorScheme.dark(
-          primary: Colors.greenAccent.shade400,
-        ),
+        colorScheme: ColorScheme.dark(primary: Colors.greenAccent.shade400),
       ),
       home: const InicioScreen(),
     );
@@ -144,8 +142,11 @@ class SemPermissaoScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const ExcludeSemantics(
-                  child: Icon(Icons.no_photography,
-                      color: Colors.redAccent, size: 64),
+                  child: Icon(
+                    Icons.no_photography,
+                    color: Colors.redAccent,
+                    size: 64,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 Semantics(
@@ -168,8 +169,10 @@ class SemPermissaoScreen extends StatelessWidget {
                   height: 64,
                   child: ElevatedButton(
                     onPressed: onTentarDeNovo,
-                    child: const Text('Permitir câmera',
-                        style: TextStyle(fontSize: 20)),
+                    child: const Text(
+                      'Permitir câmera',
+                      style: TextStyle(fontSize: 20),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -177,8 +180,10 @@ class SemPermissaoScreen extends StatelessWidget {
                   height: 64,
                   child: OutlinedButton(
                     onPressed: openAppSettings,
-                    child: const Text('Abrir configurações',
-                        style: TextStyle(fontSize: 20)),
+                    child: const Text(
+                      'Abrir configurações',
+                      style: TextStyle(fontSize: 20),
+                    ),
                   ),
                 ),
               ],

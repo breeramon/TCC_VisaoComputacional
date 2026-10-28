@@ -6,7 +6,11 @@ class AvisoScreen extends StatelessWidget {
 
   const AvisoScreen({super.key, required this.onAceitar});
 
-  static const _estilo = TextStyle(color: Colors.white, fontSize: 20, height: 1.4);
+  static const _estilo = TextStyle(
+    color: Colors.white,
+    fontSize: 20,
+    height: 1.4,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -28,9 +32,10 @@ class AvisoScreen extends StatelessWidget {
                         child: const Text(
                           'Bem-vindo ao VozGuia',
                           style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold),
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -68,8 +73,10 @@ class AvisoScreen extends StatelessWidget {
                 height: 72,
                 child: ElevatedButton(
                   onPressed: onAceitar,
-                  child: const Text('Entendi, começar',
-                      style: TextStyle(fontSize: 22)),
+                  child: const Text(
+                    'Entendi, começar',
+                    style: TextStyle(fontSize: 22),
+                  ),
                 ),
               ),
             ],

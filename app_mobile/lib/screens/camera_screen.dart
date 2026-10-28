@@ -7,14 +7,23 @@ import '../tts/tts_service.dart';
 import 'sobre_screen.dart';
 
 // Cores por prioridade (espelha a lógica do script Python)
-const _corAlta  = Color(0xFFFF3B30); // vermelho — Pessoa
+const _corAlta = Color(0xFFFF3B30); // vermelho — Pessoa
 const _corMedia = Color(0xFFFF9500); // laranja  — Portas, Elevadores, Placas
 const _corBaixa = Color(0xFF34C759); // verde    — Banheiros, Maçanetas, Outros
 
-const _classesAlta  = {'person'};
+const _classesAlta = {'person'};
 const _classesMedia = {
-  'door', 'Chair', 'table', 'elevator', 'elevator sign', 'stair sign',
-  'exit sign', 'fire extinguisher', 'trash can', 'water dispenser', 'acessibility'
+  'door',
+  'Chair',
+  'table',
+  'elevator',
+  'elevator sign',
+  'stair sign',
+  'exit sign',
+  'fire extinguisher',
+  'trash can',
+  'water dispenser',
+  'acessibility',
 };
 
 Color _corParaClasse(String className) {
@@ -43,7 +52,8 @@ class CameraScreen extends StatefulWidget {
   State<CameraScreen> createState() => _CameraScreenState();
 }
 
-class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver {
+class _CameraScreenState extends State<CameraScreen>
+    with WidgetsBindingObserver {
   final TtsService _tts = TtsService();
   final YOLOViewController _yoloController = YOLOViewController();
 
@@ -54,6 +64,12 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
 
   bool _pausado = false;
   bool _emSegundoPlano = false;
+
+  // Muda a cada retomada para forçar a criação de uma YOLOView nova.
+  // No ultralytics_yolo 0.2.0, controller.stop() também descarta o modelo e os
+  // callbacks, e restartCamera() religa só a câmera — a detecção não volta.
+  // Por isso a pausa tira a YOLOView da árvore e a retomada cria outra.
+  int _sessaoCamera = 0;
 
   @override
   void initState() {
@@ -90,9 +106,14 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
 
   Future<void> _alternarPausa() async {
     if (_pausado) {
-      setState(() => _pausado = false);
+      setState(() {
+        _pausado = false;
+        _sessaoCamera++;
+        _frameCount = 0;
+        _fps = 0;
+        _fpsTimer = DateTime.now();
+      });
       _tts.retomar();
-      await _yoloController.restartCamera();
       WakelockPlus.enable();
       await _tts.falarAgora('Detecção retomada');
     } else {
@@ -100,8 +121,8 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
         _pausado = true;
         _results = [];
       });
+      // Remover a YOLOView da árvore (setState acima) libera câmera e modelo
       await _tts.pausar();
-      await _yoloController.stop();
       WakelockPlus.disable();
       await _tts.falarAgora('Detecção pausada. Toque duas vezes para retomar.');
     }
@@ -111,9 +132,9 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
     final estavaPausado = _pausado;
     if (!estavaPausado) await _alternarPausa();
     if (!mounted) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const SobreScreen()),
-    );
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const SobreScreen()));
     if (!mounted) return;
     if (!estavaPausado) await _alternarPausa();
   }
@@ -132,15 +153,19 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
     }
 
     // Converte YOLOResult → Detection para o TtsService
-    final detections = results.map((r) => Detection(
-      classIndex: r.classIndex,
-      className: r.className,
-      confidence: r.confidence,
-      x1: r.normalizedBox.left,
-      y1: r.normalizedBox.top,
-      x2: r.normalizedBox.right,
-      y2: r.normalizedBox.bottom,
-    )).toList();
+    final detections = results
+        .map(
+          (r) => Detection(
+            classIndex: r.classIndex,
+            className: r.className,
+            confidence: r.confidence,
+            x1: r.normalizedBox.left,
+            y1: r.normalizedBox.top,
+            x2: r.normalizedBox.right,
+            y2: r.normalizedBox.bottom,
+          ),
+        )
+        .toList();
 
     _tts.processDetections(detections);
     if (mounted) setState(() => _results = results);
@@ -161,21 +186,23 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // YOLOView: câmera + inferência nativa com GPU
-          ExcludeSemantics(
-            child: YOLOView(
-              modelPath: 'best_int8',
-              task: YOLOTask.detect,
-              controller: _yoloController,
-              streamingConfig: _streamingConfig,
-              confidenceThreshold: _confianca,
-              iouThreshold: _iou,
-              useGpu: _useGpu,
-              showOverlays: false,
-              showNativeUI: false,
-              onResult: _onResults,
+          // YOLOView: câmera + inferência nativa com GPU (fora da árvore quando pausado)
+          if (!_pausado)
+            ExcludeSemantics(
+              child: YOLOView(
+                key: ValueKey(_sessaoCamera),
+                modelPath: 'best_int8',
+                task: YOLOTask.detect,
+                controller: _yoloController,
+                streamingConfig: _streamingConfig,
+                confidenceThreshold: _confianca,
+                iouThreshold: _iou,
+                useGpu: _useGpu,
+                showOverlays: false,
+                showNativeUI: false,
+                onResult: _onResults,
+              ),
             ),
-          ),
 
           // Overlay com bounding boxes coloridas por prioridade
           if (_results.isNotEmpty && !_pausado)
@@ -192,7 +219,9 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
           Semantics(
             button: true,
             label: _pausado ? 'Retomar detecção' : 'Pausar detecção',
-            hint: _pausado ? 'Os avisos estão pausados' : 'Os avisos estão ativos',
+            hint: _pausado
+                ? 'Os avisos estão pausados'
+                : 'Os avisos estão ativos',
             onTap: _alternarPausa,
             excludeSemantics: true,
             child: GestureDetector(
@@ -243,8 +272,11 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
         child: Row(
           children: [
             ExcludeSemantics(
-              child: Icon(Icons.fiber_manual_record,
-                  color: _pausado ? Colors.white54 : Colors.greenAccent, size: 10),
+              child: Icon(
+                Icons.fiber_manual_record,
+                color: _pausado ? Colors.white54 : Colors.greenAccent,
+                size: 10,
+              ),
             ),
             const SizedBox(width: 6),
             Expanded(
@@ -253,8 +285,8 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
                   _pausado
                       ? 'Pausado'
                       : _results.isEmpty
-                          ? 'Nenhum objeto detectado'
-                          : '${_results.length} objeto(s) detectado(s)',
+                      ? 'Nenhum objeto detectado'
+                      : '${_results.length} objeto(s) detectado(s)',
                   style: const TextStyle(color: Colors.white, fontSize: 11),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -300,15 +332,16 @@ class _DetectionPainter extends CustomPainter {
 
       // normalizedBox em [0,1] → converte para pixels da tela
       final rect = Rect.fromLTRB(
-        r.normalizedBox.left   * size.width,
-        r.normalizedBox.top    * size.height,
-        r.normalizedBox.right  * size.width,
+        r.normalizedBox.left * size.width,
+        r.normalizedBox.top * size.height,
+        r.normalizedBox.right * size.width,
         r.normalizedBox.bottom * size.height,
       );
 
       canvas.drawRect(rect, paint);
 
-      final label = '${r.className} ${(r.confidence * 100).toStringAsFixed(0)}%';
+      final label =
+          '${r.className} ${(r.confidence * 100).toStringAsFixed(0)}%';
       final tp = TextPainter(
         text: TextSpan(
           text: ' $label ',

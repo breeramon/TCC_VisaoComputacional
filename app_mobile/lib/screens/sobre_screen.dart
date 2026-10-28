@@ -4,16 +4,26 @@ import 'package:url_launcher/url_launcher.dart';
 const _urlCodigo = 'https://github.com/breeramon/TCC_VisaoComputacional';
 
 const _datasets = <(String, String)>[
-  ('deteccao-de-objetos-faculdade (Breno Ramon)',
-      'https://universe.roboflow.com/breno-s-workspace/deteccao-de-objetos-faculdade'),
-  ('indoor-navigation (akhash)',
-      'https://universe.roboflow.com/akhash/indoor-navigation-xs4of'),
-  ('person-detection (titulacin)',
-      'https://universe.roboflow.com/titulacin/person-detection-9a6mk'),
-  ('indoor-navigation-v8ctg (final-project-4152)',
-      'https://universe.roboflow.com/final-project-4152/indoor-navigation-v8ctg'),
-  ('door-detection (cody-pwtvk)',
-      'https://universe.roboflow.com/cody-pwtvk/door-detection-j97hy'),
+  (
+    'deteccao-de-objetos-faculdade (Breno Ramon)',
+    'https://universe.roboflow.com/breno-s-workspace/deteccao-de-objetos-faculdade',
+  ),
+  (
+    'indoor-navigation (akhash)',
+    'https://universe.roboflow.com/akhash/indoor-navigation-xs4of',
+  ),
+  (
+    'person-detection (titulacin)',
+    'https://universe.roboflow.com/titulacin/person-detection-9a6mk',
+  ),
+  (
+    'indoor-navigation-v8ctg (final-project-4152)',
+    'https://universe.roboflow.com/final-project-4152/indoor-navigation-v8ctg',
+  ),
+  (
+    'door-detection (cody-pwtvk)',
+    'https://universe.roboflow.com/cody-pwtvk/door-detection-j97hy',
+  ),
 ];
 
 /// Tela "Sobre": licença, código-fonte, créditos dos datasets e privacidade.
@@ -21,29 +31,37 @@ class SobreScreen extends StatelessWidget {
   const SobreScreen({super.key});
 
   Future<void> _abrir(BuildContext context, String url) async {
-    final ok = await launchUrl(Uri.parse(url),
-        mode: LaunchMode.externalApplication);
+    final ok = await launchUrl(
+      Uri.parse(url),
+      mode: LaunchMode.externalApplication,
+    );
     if (!ok && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Não foi possível abrir $url')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Não foi possível abrir $url')));
     }
   }
 
   Widget _titulo(String texto) => Padding(
-        padding: const EdgeInsets.only(top: 24, bottom: 8),
-        child: Semantics(
-          header: true,
-          child: Text(texto,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold)),
+    padding: const EdgeInsets.only(top: 24, bottom: 8),
+    child: Semantics(
+      header: true,
+      child: Text(
+        texto,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
         ),
-      );
+      ),
+    ),
+  );
 
-  static const _estilo =
-      TextStyle(color: Colors.white70, fontSize: 18, height: 1.4);
+  static const _estilo = TextStyle(
+    color: Colors.white70,
+    fontSize: 18,
+    height: 1.4,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -85,8 +103,10 @@ class SobreScreen extends StatelessWidget {
               height: 56,
               child: OutlinedButton(
                 onPressed: () => _abrir(context, _urlCodigo),
-                child: const Text('Ver o código-fonte no GitHub',
-                    style: TextStyle(fontSize: 18)),
+                child: const Text(
+                  'Ver o código-fonte no GitHub',
+                  style: TextStyle(fontSize: 18),
+                ),
               ),
             ),
             _titulo('Créditos dos dados'),
@@ -99,12 +119,17 @@ class SobreScreen extends StatelessWidget {
             for (final (nome, url) in _datasets)
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text(nome,
-                    style: const TextStyle(color: Colors.white, fontSize: 17)),
-                subtitle: const Text('Roboflow Universe',
-                    style: TextStyle(color: Colors.white54)),
+                title: Text(
+                  nome,
+                  style: const TextStyle(color: Colors.white, fontSize: 17),
+                ),
+                subtitle: const Text(
+                  'Roboflow Universe',
+                  style: TextStyle(color: Colors.white54),
+                ),
                 trailing: const ExcludeSemantics(
-                    child: Icon(Icons.open_in_new, color: Colors.white54)),
+                  child: Icon(Icons.open_in_new, color: Colors.white54),
+                ),
                 onTap: () => _abrir(context, url),
               ),
             _titulo('Autor'),

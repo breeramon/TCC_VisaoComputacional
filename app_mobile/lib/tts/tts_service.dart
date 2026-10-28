@@ -17,66 +17,66 @@ class TtsService {
 
   // Chaves = nomes do modelo (inglês) — valores = (prioridade, segsConfirmação, segsReaviso)
   static const Map<String, (int, double, double)> _prioridades = {
-    'person':            (1, 0.4, 3.0),
-    'door':              (2, 0.4, 5.0),
-    'Chair':             (2, 0.4, 5.0),
-    'table':             (2, 0.4, 5.0),
-    'elevator':          (2, 0.4, 5.0),
-    'elevator sign':     (2, 0.8, 5.0),
-    'stair sign':        (2, 0.4, 5.0),
-    'exit sign':         (2, 0.8, 5.0),
+    'person': (1, 0.4, 3.0),
+    'door': (2, 0.4, 5.0),
+    'Chair': (2, 0.4, 5.0),
+    'table': (2, 0.4, 5.0),
+    'elevator': (2, 0.4, 5.0),
+    'elevator sign': (2, 0.8, 5.0),
+    'stair sign': (2, 0.4, 5.0),
+    'exit sign': (2, 0.8, 5.0),
     'fire extinguisher': (2, 0.4, 5.0),
-    'acessibility':      (2, 0.8, 5.0),
-    'trash can':         (2, 0.4, 5.0),
-    'water dispenser':   (2, 0.8, 5.0),
-    'fire alarm':        (3, 1.0, 5.0),
-    'handle':            (3, 0.8, 5.0),
-    'push handle':       (3, 0.8, 5.0),
-    'men washroom':      (3, 0.4, 5.0),
-    'women washrooom':   (3, 0.4, 5.0),
+    'acessibility': (2, 0.8, 5.0),
+    'trash can': (2, 0.4, 5.0),
+    'water dispenser': (2, 0.8, 5.0),
+    'fire alarm': (3, 1.0, 5.0),
+    'handle': (3, 0.8, 5.0),
+    'push handle': (3, 0.8, 5.0),
+    'men washroom': (3, 0.4, 5.0),
+    'women washrooom': (3, 0.4, 5.0),
   };
   static const (int, double, double) _padrao = (3, 1.0, 8.0);
 
   // Nome em português falado pelo TTS (chave = nome do modelo em inglês)
   static const Map<String, String> _nomePt = {
-    'person':            'Pessoa',
-    'door':              'Porta',
-    'Chair':             'Cadeira',
-    'table':             'Mesa',
-    'elevator':          'Elevador',
-    'elevator sign':     'Placa de elevador',
-    'stair sign':        'Placa de escada',
-    'exit sign':         'Sinalização de saída',
+    'person': 'Pessoa',
+    'door': 'Porta',
+    'Chair': 'Cadeira',
+    'table': 'Mesa',
+    'elevator': 'Elevador',
+    'elevator sign': 'Placa de elevador',
+    'stair sign': 'Placa de escada',
+    'exit sign': 'Sinalização de saída',
     'fire extinguisher': 'Extintor de incêndio',
-    'acessibility':      'Acessibilidade',
-    'trash can':         'Lixeira',
-    'water dispenser':   'Bebedouro',
-    'fire alarm':        'Alarme de incêndio',
-    'handle':            'Maçaneta',
-    'push handle':       'Maçaneta de empurrar',
-    'men washroom':      'Banheiro masculino',
-    'women washrooom':   'Banheiro feminino',
+    'acessibility': 'Acessibilidade',
+    'trash can': 'Lixeira',
+    'water dispenser': 'Bebedouro',
+    'fire alarm': 'Alarme de incêndio',
+    'handle': 'Maçaneta',
+    'push handle': 'Maçaneta de empurrar',
+    'men washroom': 'Banheiro masculino',
+    'women washrooom': 'Banheiro feminino',
   };
 
   // Gênero gramatical para concordância (chave = nome do modelo em inglês)
   static const Map<String, String> _genero = {
-    'person':            'f', // Pessoa
-    'door':              'f', // Porta
-    'Chair':             'f', // Cadeira
-    'table':             'f', // Mesa
-    'elevator':          'm', // Elevador
-    'elevator sign':     'f', // Placa
-    'stair sign':        'f', // Placa
-    'exit sign':         'f', // Sinalização
-    'fire alarm':        'm', // Alarme
+    'person': 'f', // Pessoa
+    'door': 'f', // Porta
+    'Chair': 'f', // Cadeira
+    'table': 'f', // Mesa
+    'elevator': 'm', // Elevador
+    'elevator sign': 'f', // Placa
+    'stair sign': 'f', // Placa
+    'exit sign': 'f', // Sinalização
+    'fire alarm': 'm', // Alarme
     'fire extinguisher': 'm', // Extintor
-    'trash can':         'f', // Lixeira
-    'water dispenser':   'm', // Bebedouro
-    'handle':            'f', // Maçaneta
-    'push handle':       'f', // Maçaneta
-    'men washroom':      'm', // Banheiro
-    'women washrooom':   'm', // Banheiro
-    'acessibility':      'f', // Acessibilidade
+    'trash can': 'f', // Lixeira
+    'water dispenser': 'm', // Bebedouro
+    'handle': 'f', // Maçaneta
+    'push handle': 'f', // Maçaneta
+    'men washroom': 'm', // Banheiro
+    'women washrooom': 'm', // Banheiro
+    'acessibility': 'f', // Acessibilidade
   };
 
   // Limiares de proximidade por classe, em fração da área do quadro ocupada
@@ -86,24 +86,24 @@ class TtsService {
   // são obstáculos). Valores iniciais — calibrar com testes no celular.
   static const Map<String, (double, double?)> _limiaresProximidade = {
     // Obstáculos
-    'person':            (0.15, 0.30),
-    'Chair':             (0.10, 0.25),
-    'table':             (0.15, 0.35),
-    'trash can':         (0.06, 0.15),
-    'water dispenser':   (0.08, 0.20),
-    'door':              (0.35, 0.60),
-    'elevator':          (0.35, 0.60),
+    'person': (0.15, 0.30),
+    'Chair': (0.10, 0.25),
+    'table': (0.15, 0.35),
+    'trash can': (0.06, 0.15),
+    'water dispenser': (0.08, 0.20),
+    'door': (0.35, 0.60),
+    'elevator': (0.35, 0.60),
     // Referências na parede (nunca urgentes)
     'fire extinguisher': (0.04, null),
-    'fire alarm':        (0.02, null),
-    'elevator sign':     (0.03, null),
-    'stair sign':        (0.03, null),
-    'exit sign':         (0.03, null),
-    'acessibility':      (0.03, null),
-    'men washroom':      (0.03, null),
-    'women washrooom':   (0.03, null),
-    'handle':            (0.02, null),
-    'push handle':       (0.02, null),
+    'fire alarm': (0.02, null),
+    'elevator sign': (0.03, null),
+    'stair sign': (0.03, null),
+    'exit sign': (0.03, null),
+    'acessibility': (0.03, null),
+    'men washroom': (0.03, null),
+    'women washrooom': (0.03, null),
+    'handle': (0.02, null),
+    'push handle': (0.02, null),
   };
   static const (double, double?) _limiaresPadrao = (0.15, 0.30);
 
@@ -161,14 +161,20 @@ class TtsService {
 
     // Monta mapa: className (inglês) → (posicao, area, nivelProximidade)
     // Mantém apenas a maior bbox por classe (mais próxima)
-    final Map<String, ({String posicao, double area, int nivelProx})> vistos = {};
+    final Map<String, ({String posicao, double area, int nivelProx})> vistos =
+        {};
     for (final d in detections) {
       final posicao = _calcularPosicao(d.x1, d.x2);
       final area = (d.x2 - d.x1) * (d.y2 - d.y1);
       final nivelProx = nivelProximidade(d.className, area);
 
-      if (!vistos.containsKey(d.className) || area > vistos[d.className]!.area) {
-        vistos[d.className] = (posicao: posicao, area: area, nivelProx: nivelProx);
+      if (!vistos.containsKey(d.className) ||
+          area > vistos[d.className]!.area) {
+        vistos[d.className] = (
+          posicao: posicao,
+          area: area,
+          nivelProx: nivelProx,
+        );
       }
     }
 
@@ -190,7 +196,8 @@ class TtsService {
     }
 
     // Coleta candidatos sem modificar estado — timers só atualizam se o TTS falar
-    final candidatos = <({int nivel, bool urgente, String texto, String obj})>[];
+    final candidatos =
+        <({int nivel, bool urgente, String texto, String obj})>[];
 
     for (final MapEntry(key: obj, value: info) in vistos.entries) {
       final inicio = _emConfirmacao[obj];
@@ -201,7 +208,8 @@ class TtsService {
           now.difference(inicio).inMilliseconds >= (tConfirm * 1000).toInt();
 
       final ultimoAv = _ultimoAviso[obj];
-      final naoRecente = ultimoAv == null ||
+      final naoRecente =
+          ultimoAv == null ||
           now.difference(ultimoAv).inMilliseconds >= (tReaviso * 1000).toInt();
 
       // Proximidade aumentou — alerta imediato mesmo sem reaviso periódico
