@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ultralytics_yolo/ultralytics_yolo.dart';
 import 'package:ultralytics_yolo/widgets/yolo_controller.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import '../detector/limiares_confianca.dart';
 import '../detector/object_detector.dart';
 import '../tts/tts_service.dart';
 import 'sobre_screen.dart';
@@ -36,10 +37,11 @@ Color _corParaClasse(String className) {
 // Para saber o que foi usado de fato: adb logcat | findstr ObjectDetector
 const _useGpu = true;
 
-const _confianca = 0.6;
 const _iou = 0.45;
-// Limita a 7 detecções por frame — evita processar dezenas de bboxes desnecessárias
-const _maxDeteccoes = 7;
+// Limita as detecções por frame — evita processar dezenas de bboxes desnecessárias.
+// Um pouco acima de 7 porque o filtro nativo agora usa o limiar mínimo (0,40)
+// e algumas caixas são descartadas depois, pelo limiar da classe.
+const _maxDeteccoes = 10;
 
 // Limita a 15 inferências/segundo — suficiente para navegação e
 // reduz consumo de CPU/bateria em dispositivos fracos
@@ -85,7 +87,7 @@ class _CameraScreenState extends State<CameraScreen>
     _tts.init();
     // Guardados no controller e aplicados quando a câmera nativa inicializa
     _yoloController.setThresholds(
-      confidenceThreshold: _confianca,
+      confidenceThreshold: limiarConfiancaMinimo,
       iouThreshold: _iou,
       numItemsThreshold: _maxDeteccoes,
     );
@@ -146,8 +148,13 @@ class _CameraScreenState extends State<CameraScreen>
     if (!estavaPausado) await _alternarPausa();
   }
 
-  void _onResults(List<YOLOResult> results) {
+  void _onResults(List<YOLOResult> todos) {
     if (_pausado || _emSegundoPlano) return;
+
+    // O modelo nativo filtra só pelo limiar mínimo; aqui aplica o de cada classe
+    final results = todos
+        .where((r) => passaConfianca(r.className, r.confidence))
+        .toList();
 
     // Calcula FPS
     _frameCount++;
@@ -200,7 +207,7 @@ class _CameraScreenState extends State<CameraScreen>
               task: YOLOTask.detect,
               controller: _yoloController,
               streamingConfig: _streamingConfig,
-              confidenceThreshold: _confianca,
+              confidenceThreshold: limiarConfiancaMinimo,
               iouThreshold: _iou,
               useGpu: _useGpu,
               showOverlays: false,
