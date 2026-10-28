@@ -4,6 +4,7 @@ import 'package:ultralytics_yolo/widgets/yolo_controller.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../detector/limiares_confianca.dart';
 import '../detector/object_detector.dart';
+import '../feedback/vibracao_service.dart';
 import '../tts/tts_service.dart';
 import 'sobre_screen.dart';
 
@@ -61,6 +62,7 @@ class CameraScreen extends StatefulWidget {
 class _CameraScreenState extends State<CameraScreen>
     with WidgetsBindingObserver {
   final TtsService _tts = TtsService();
+  final VibracaoService _vibracao = VibracaoService();
   final YOLOViewController _yoloController = YOLOViewController();
 
   List<YOLOResult> _results = [];
@@ -85,6 +87,8 @@ class _CameraScreenState extends State<CameraScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _tts.init();
+    _vibracao.init();
+    _tts.aoAnunciar = _vibracao.proximidade;
     // Guardados no controller e aplicados quando a câmera nativa inicializa
     _yoloController.setThresholds(
       confidenceThreshold: limiarConfiancaMinimo,
@@ -122,6 +126,7 @@ class _CameraScreenState extends State<CameraScreen>
         _fpsTimer = DateTime.now();
       });
       await _yoloController.setStreamingConfig(_streamingConfig);
+      _vibracao.retomada();
       _tts.retomar();
       WakelockPlus.enable();
       await _tts.falarAgora('Detecção retomada');
@@ -131,6 +136,7 @@ class _CameraScreenState extends State<CameraScreen>
         _results = [];
       });
       await _yoloController.setStreamingConfig(_streamingConfigPausado);
+      _vibracao.pausa();
       await _tts.pausar();
       WakelockPlus.disable();
       await _tts.falarAgora('Detecção pausada. Toque duas vezes para retomar.');
@@ -189,6 +195,7 @@ class _CameraScreenState extends State<CameraScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     WakelockPlus.disable();
+    _vibracao.dispose();
     _tts.dispose();
     super.dispose();
   }

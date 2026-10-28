@@ -2,6 +2,8 @@
 
     <!-- Permissão de câmera para captura de vídeo em tempo real -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Vibração junto com os avisos de proximidade -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <uses-feature android:name="android.hardware.camera" android:required="true" />
 

@@ -15,6 +15,11 @@ class TtsService {
   bool _falandoUrgente = false;
   bool _ativo = true;
 
+  /// Chamado a cada aviso de detecção com o maior nível de proximidade dos
+  /// objetos anunciados (0 = longe, 1 = próximo, 2 = muito próximo).
+  /// Usado para disparar a vibração junto com a fala.
+  void Function(int nivelProximidade)? aoAnunciar;
+
   // Chaves = nomes do modelo (inglês) — valores = (prioridade, segsConfirmação, segsReaviso)
   static const Map<String, (int, double, double)> _prioridades = {
     'person': (1, 0.4, 3.0),
@@ -253,6 +258,11 @@ class TtsService {
     final mensagem = textos.length == 1
         ? '${textos[0]}.'
         : '${textos.sublist(0, textos.length - 1).join(', ')} e ${textos.last}.';
+
+    final nivelMaximo = escolhidos
+        .map((c) => vistos[c.obj]!.nivelProx)
+        .fold(0, (a, b) => a > b ? a : b);
+    aoAnunciar?.call(nivelMaximo);
 
     _speak(mensagem, urgente: escolhidos.any((c) => c.urgente));
   }
