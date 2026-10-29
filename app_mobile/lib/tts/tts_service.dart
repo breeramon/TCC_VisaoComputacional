@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import '../config/configuracoes.dart';
 import '../detector/object_detector.dart';
 
 /// Gerencia a síntese de voz com lógica de:
@@ -14,6 +15,7 @@ class TtsService {
   bool _speaking = false;
   bool _falandoUrgente = false;
   bool _ativo = true;
+  Configuracoes _config = const Configuracoes();
 
   /// Chamado a cada aviso de detecção com o maior nível de proximidade dos
   /// objetos anunciados (0 = longe, 1 = próximo, 2 = muito próximo).
@@ -126,7 +128,7 @@ class TtsService {
 
   Future<void> init() async {
     await _tts.setLanguage('pt-BR');
-    await _tts.setSpeechRate(0.5);
+    await _tts.setSpeechRate(_config.velocidadeFala);
     await _tts.setVolume(1.0);
     await _tts.setPitch(1.0);
     // Sem setCancelHandler de propósito: quando a fala é interrompida,
@@ -138,6 +140,12 @@ class TtsService {
   void _fimDaFala() {
     _speaking = false;
     _falandoUrgente = false;
+  }
+
+  /// Aplica as configurações do usuário (velocidade da fala, classes, posição).
+  Future<void> aplicarConfiguracoes(Configuracoes config) async {
+    _config = config;
+    await _tts.setSpeechRate(config.velocidadeFala);
   }
 
   /// Para de anunciar e esquece o que estava vendo.
@@ -169,6 +177,8 @@ class TtsService {
     final Map<String, ({String posicao, double area, int nivelProx})> vistos =
         {};
     for (final d in detections) {
+      // Classes desligadas nas configurações não são anunciadas
+      if (!_config.anuncia(d.className)) continue;
       final posicao = _calcularPosicao(d.x1, d.x2);
       final area = (d.x2 - d.x1) * (d.y2 - d.y1);
       final nivelProx = nivelProximidade(d.className, area);
@@ -227,7 +237,9 @@ class TtsService {
         candidatos.add((
           nivel: nivel,
           urgente: info.nivelProx == 2,
-          texto: '$prefixo$nomePt$sufixo ${info.posicao}',
+          texto: _config.anunciarPosicao
+              ? '$prefixo$nomePt$sufixo ${info.posicao}'
+              : '$prefixo$nomePt$sufixo',
           obj: obj,
         ));
       }

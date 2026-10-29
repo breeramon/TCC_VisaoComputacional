@@ -7,6 +7,9 @@ import 'package:vibration/vibration.dart';
 class VibracaoService {
   bool _disponivel = false;
 
+  /// Liga/desliga pela tela de configurações.
+  bool ativo = true;
+
   // Padrões: [espera, vibra, espera, vibra, ...] em milissegundos
   static const List<int> _padraoProximo = [0, 120];
   static const List<int> _padraoMuitoProximo = [0, 150, 100, 150, 100, 150];
@@ -36,7 +39,7 @@ class VibracaoService {
   void retomada() => _vibrar(_padraoRetomada);
 
   void _vibrar(List<int> padrao) {
-    if (!_disponivel) return;
+    if (!_disponivel || !ativo) return;
     try {
       Vibration.vibrate(pattern: padrao);
     } catch (_) {

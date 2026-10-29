@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:ultralytics_yolo/ultralytics_yolo.dart';
 import 'package:ultralytics_yolo/widgets/yolo_controller.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import '../config/configuracoes.dart';
 import '../detector/limiares_confianca.dart';
 import '../detector/object_detector.dart';
 import '../feedback/vibracao_service.dart';
 import '../tts/tts_service.dart';
+import 'configuracoes_screen.dart';
 import 'sobre_screen.dart';
 
 // Cores por prioridade (espelha a lógica do script Python)
@@ -72,6 +74,7 @@ class _CameraScreenState extends State<CameraScreen>
 
   bool _pausado = false;
   bool _emSegundoPlano = false;
+  Configuracoes _config = const Configuracoes();
 
   // Uma única YOLOView fica montada o tempo todo. No ultralytics_yolo 0.2.0:
   // - controller.stop() descarta o modelo e os callbacks, e restartCamera()
@@ -86,8 +89,7 @@ class _CameraScreenState extends State<CameraScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _tts.init();
-    _vibracao.init();
+    _iniciarServicos();
     _tts.aoAnunciar = _vibracao.proximidade;
     // Guardados no controller e aplicados quando a câmera nativa inicializa
     _yoloController.setThresholds(
@@ -97,6 +99,18 @@ class _CameraScreenState extends State<CameraScreen>
     );
     // Mantém a tela ligada: se ela apagar, a câmera para
     WakelockPlus.enable();
+  }
+
+  Future<void> _iniciarServicos() async {
+    await _tts.init();
+    await _vibracao.init();
+    await _aplicarConfiguracoes(await Configuracoes.carregar());
+  }
+
+  Future<void> _aplicarConfiguracoes(Configuracoes config) async {
+    _config = config;
+    _vibracao.ativo = config.vibracao;
+    await _tts.aplicarConfiguracoes(config);
   }
 
   @override
@@ -150,6 +164,18 @@ class _CameraScreenState extends State<CameraScreen>
     await Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const SobreScreen()));
+    if (!mounted) return;
+    if (!estavaPausado) await _alternarPausa();
+  }
+
+  Future<void> _abrirConfiguracoes() async {
+    final estavaPausado = _pausado;
+    if (!estavaPausado) await _alternarPausa();
+    if (!mounted) return;
+    final nova = await Navigator.of(context).push<Configuracoes>(
+      MaterialPageRoute(builder: (_) => ConfiguracoesScreen(inicial: _config)),
+    );
+    if (nova != null) await _aplicarConfiguracoes(nova);
     if (!mounted) return;
     if (!estavaPausado) await _alternarPausa();
   }
@@ -316,6 +342,13 @@ class _CameraScreenState extends State<CameraScreen>
                 '${_useGpu ? "GPU" : "CPU"} · $_fps fps',
                 style: const TextStyle(color: Colors.white70, fontSize: 11),
               ),
+            ),
+            IconButton(
+              onPressed: _abrirConfiguracoes,
+              icon: const Icon(Icons.settings, color: Colors.white),
+              tooltip: 'Configurações',
+              iconSize: 28,
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             ),
             IconButton(
               onPressed: _abrirSobre,
