@@ -15,6 +15,9 @@ class TtsService {
   bool _speaking = false;
   bool _falandoUrgente = false;
   bool _ativo = true;
+
+  /// Até quando os avisos de detecção ficam em silêncio para o TalkBack falar.
+  DateTime? _silencioAte;
   Configuracoes _config = const Configuracoes();
 
   /// Chamado a cada aviso de detecção com o maior nível de proximidade dos
@@ -161,6 +164,21 @@ class TtsService {
   }
 
   /// Fala uma mensagem do sistema (ex.: "Detecção pausada"), interrompendo o que estiver falando.
+  /// Corta a fala atual e não anuncia detecções por [duracao].
+  /// Usado quando o TalkBack põe o foco em algum elemento: assim o leitor de
+  /// tela fala na hora, sem esperar o aviso do app terminar.
+  Future<void> darVezAoLeitorDeTela([
+    Duration duracao = const Duration(seconds: 4),
+  ]) async {
+    _silencioAte = DateTime.now().add(duracao);
+    await _interromper();
+  }
+
+  bool _emSilencio(DateTime agora) {
+    final ate = _silencioAte;
+    return ate != null && agora.isBefore(ate);
+  }
+
   Future<void> falarAgora(String texto) async {
     await _interromper();
     _speaking = true;
@@ -245,7 +263,8 @@ class TtsService {
       }
     }
 
-    if (candidatos.isEmpty) return;
+    // Em silêncio para o TalkBack: continua rastreando, mas não fala
+    if (candidatos.isEmpty || _emSilencio(now)) return;
 
     final temUrgente = candidatos.any((c) => c.urgente);
     if (_speaking) {

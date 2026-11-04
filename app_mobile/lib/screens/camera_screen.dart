@@ -180,6 +180,10 @@ class _CameraScreenState extends State<CameraScreen>
     if (!estavaPausado) await _alternarPausa();
   }
 
+  /// O TalkBack pôs o foco num elemento desta tela: corta o aviso do app
+  /// para o leitor de tela falar na hora.
+  void _darVezAoTalkBack() => _tts.darVezAoLeitorDeTela();
+
   void _onResults(List<YOLOResult> todos) {
     if (_pausado || _emSegundoPlano) return;
 
@@ -268,6 +272,7 @@ class _CameraScreenState extends State<CameraScreen>
                 ? 'Os avisos estão pausados'
                 : 'Os avisos estão ativos',
             onTap: _alternarPausa,
+            onDidGainAccessibilityFocus: _darVezAoTalkBack,
             excludeSemantics: true,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -343,19 +348,35 @@ class _CameraScreenState extends State<CameraScreen>
                 style: const TextStyle(color: Colors.white70, fontSize: 11),
               ),
             ),
-            IconButton(
-              onPressed: _abrirConfiguracoes,
-              icon: const Icon(Icons.settings, color: Colors.white),
-              tooltip: 'Configurações',
-              iconSize: 28,
-              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+            // Semantics próprio em cada botão para saber quando o TalkBack
+            // põe o foco nele e dar a vez ao leitor de tela
+            Semantics(
+              button: true,
+              label: 'Configurações',
+              onTap: _abrirConfiguracoes,
+              onDidGainAccessibilityFocus: _darVezAoTalkBack,
+              excludeSemantics: true,
+              child: IconButton(
+                onPressed: _abrirConfiguracoes,
+                icon: const Icon(Icons.settings, color: Colors.white),
+                tooltip: 'Configurações',
+                iconSize: 28,
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              ),
             ),
-            IconButton(
-              onPressed: _abrirSobre,
-              icon: const Icon(Icons.info_outline, color: Colors.white),
-              tooltip: 'Sobre o VozGuia',
-              iconSize: 28,
-              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+            Semantics(
+              button: true,
+              label: 'Sobre o VozGuia',
+              onTap: _abrirSobre,
+              onDidGainAccessibilityFocus: _darVezAoTalkBack,
+              excludeSemantics: true,
+              child: IconButton(
+                onPressed: _abrirSobre,
+                icon: const Icon(Icons.info_outline, color: Colors.white),
+                tooltip: 'Sobre o VozGuia',
+                iconSize: 28,
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              ),
             ),
           ],
         ),
