@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'tutorial_screen.dart';
 
 const _urlCodigo = 'https://github.com/breeramon/TCC_VisaoComputacional';
 
@@ -132,6 +133,23 @@ class SobreScreen extends StatelessWidget {
                 ),
                 onTap: () => _abrir(context, url),
               ),
+            _titulo('Como usar'),
+            SizedBox(
+              height: 56,
+              child: OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (ctx) => TutorialScreen(
+                      onConcluir: () => Navigator.of(ctx).pop(),
+                    ),
+                  ),
+                ),
+                child: const Text(
+                  'Ouvir o tutorial de novo',
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
+            ),
             _titulo('Autor'),
             const Text('Breno Ramon Santana dos Santos', style: _estilo),
           ],

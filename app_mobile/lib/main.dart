@@ -4,8 +4,10 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/aviso_screen.dart';
 import 'screens/camera_screen.dart';
+import 'screens/tutorial_screen.dart';
 
 const _chaveAvisoAceito = 'aviso_seguranca_aceito_v1';
+const _chaveTutorialVisto = 'tutorial_visto_v1';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +34,7 @@ class VozGuiaApp extends StatelessWidget {
   }
 }
 
-enum _Etapa { carregando, aviso, permissao, camera }
+enum _Etapa { carregando, aviso, tutorial, permissao, camera }
 
 /// Decide o que mostrar ao abrir o app:
 /// 1. Aviso de segurança (só na primeira vez)
@@ -85,6 +87,29 @@ class _InicioScreenState extends State<InicioScreen>
       setState(() => _etapa = _Etapa.aviso);
       return;
     }
+    await _seguirDepoisDoAviso();
+  }
+
+  /// Mostra o tutorial se ainda não foi visto; senão, vai para a câmera.
+  Future<void> _seguirDepoisDoAviso() async {
+    bool tutorialVisto = false;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      tutorialVisto = prefs.getBool(_chaveTutorialVisto) ?? false;
+    } catch (_) {}
+    if (!mounted) return;
+    if (!tutorialVisto) {
+      setState(() => _etapa = _Etapa.tutorial);
+      return;
+    }
+    await _verificarPermissao(pedir: true);
+  }
+
+  Future<void> _concluirTutorial() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_chaveTutorialVisto, true);
+    } catch (_) {}
     await _verificarPermissao(pedir: true);
   }
 
@@ -93,7 +118,7 @@ class _InicioScreenState extends State<InicioScreen>
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_chaveAvisoAceito, true);
     } catch (_) {}
-    await _verificarPermissao(pedir: true);
+    await _seguirDepoisDoAviso();
   }
 
   Future<void> _verificarPermissao({required bool pedir}) async {
@@ -114,6 +139,8 @@ class _InicioScreenState extends State<InicioScreen>
         return const Scaffold(backgroundColor: Colors.black);
       case _Etapa.aviso:
         return AvisoScreen(onAceitar: _aceitarAviso);
+      case _Etapa.tutorial:
+        return TutorialScreen(onConcluir: _concluirTutorial);
       case _Etapa.permissao:
         return SemPermissaoScreen(
           onTentarDeNovo: () => _verificarPermissao(pedir: true),
