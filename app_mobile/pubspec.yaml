@@ -31,6 +31,10 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Textos internos do Flutter em português e idioma correto para o TalkBack
+  flutter_localizations:
+    sdk: flutter
+
   cupertino_icons: ^1.0.8
 
   # Câmera + inferência YOLO nativa com suporte a GPU

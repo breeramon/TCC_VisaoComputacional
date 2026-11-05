@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/aviso_screen.dart';
@@ -26,6 +27,11 @@ class VozGuiaApp extends StatelessWidget {
     return MaterialApp(
       title: 'VozGuia',
       debugShowCheckedModeBanner: false,
+      // Sem isso o Flutter assume inglês, e o TalkBack lê os textos em
+      // português com a voz/pronúncia do inglês
+      locale: const Locale('pt', 'BR'),
+      supportedLocales: const [Locale('pt', 'BR')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       theme: ThemeData.dark().copyWith(
         colorScheme: ColorScheme.dark(primary: Colors.greenAccent.shade400),
       ),
