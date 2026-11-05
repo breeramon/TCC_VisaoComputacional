@@ -182,7 +182,8 @@ class _CameraScreenState extends State<CameraScreen>
 
   /// O TalkBack pôs o foco num elemento desta tela: corta o aviso do app
   /// para o leitor de tela falar na hora.
-  void _darVezAoTalkBack() => _tts.darVezAoLeitorDeTela();
+  void _darVezAoTalkBack(String elemento) =>
+      _tts.darVezAoLeitorDeTela(elemento);
 
   void _onResults(List<YOLOResult> todos) {
     if (_pausado || _emSegundoPlano) return;
@@ -253,26 +254,31 @@ class _CameraScreenState extends State<CameraScreen>
             ),
           ),
 
-          // Overlay com bounding boxes coloridas por prioridade
-          if (_results.isNotEmpty && !_pausado)
-            ExcludeSemantics(
-              child: RepaintBoundary(
-                child: CustomPaint(
-                  painter: _DetectionPainter(results: _results),
+          // Overlay com bounding boxes coloridas por prioridade.
+          // Fica SEMPRE na árvore (vazio quando não há detecção): se entrasse e
+          // saísse, o Flutter recriaria o botão de pausa logo abaixo, o TalkBack
+          // trataria como um novo foco e o app ficaria em silêncio sem parar.
+          ExcludeSemantics(
+            child: RepaintBoundary(
+              child: CustomPaint(
+                painter: _DetectionPainter(
+                  results: _pausado ? const <YOLOResult>[] : _results,
                 ),
               ),
             ),
+          ),
 
           // Área de toque da tela inteira: toque duplo pausa/retoma.
           // Com TalkBack, o leitor anuncia o rótulo e o toque duplo ativa onTap.
           Semantics(
+            key: const ValueKey('area-pausa'),
             button: true,
             label: _pausado ? 'Retomar detecção' : 'Pausar detecção',
             hint: _pausado
                 ? 'Os avisos estão pausados'
                 : 'Os avisos estão ativos',
             onTap: _alternarPausa,
-            onDidGainAccessibilityFocus: _darVezAoTalkBack,
+            onDidGainAccessibilityFocus: () => _darVezAoTalkBack('area-camera'),
             excludeSemantics: true,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -354,7 +360,8 @@ class _CameraScreenState extends State<CameraScreen>
               button: true,
               label: 'Configurações',
               onTap: _abrirConfiguracoes,
-              onDidGainAccessibilityFocus: _darVezAoTalkBack,
+              onDidGainAccessibilityFocus: () =>
+                  _darVezAoTalkBack('configuracoes'),
               excludeSemantics: true,
               child: IconButton(
                 onPressed: _abrirConfiguracoes,
@@ -368,7 +375,7 @@ class _CameraScreenState extends State<CameraScreen>
               button: true,
               label: 'Sobre o VozGuia',
               onTap: _abrirSobre,
-              onDidGainAccessibilityFocus: _darVezAoTalkBack,
+              onDidGainAccessibilityFocus: () => _darVezAoTalkBack('sobre'),
               excludeSemantics: true,
               child: IconButton(
                 onPressed: _abrirSobre,

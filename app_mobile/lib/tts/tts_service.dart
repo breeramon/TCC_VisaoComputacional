@@ -18,6 +18,11 @@ class TtsService {
 
   /// Até quando os avisos de detecção ficam em silêncio para o TalkBack falar.
   DateTime? _silencioAte;
+
+  /// Último elemento que recebeu o foco do TalkBack. O TalkBack "reconfirma"
+  /// o foco no mesmo elemento sempre que a tela se atualiza (várias vezes por
+  /// segundo na câmera); só uma mudança de elemento conta como foco novo.
+  String? _ultimoElementoFocado;
   Configuracoes _config = const Configuracoes();
 
   /// Chamado a cada aviso de detecção com o maior nível de proximidade dos
@@ -167,9 +172,19 @@ class TtsService {
   /// Corta a fala atual e não anuncia detecções por [duracao].
   /// Usado quando o TalkBack põe o foco em algum elemento: assim o leitor de
   /// tela fala na hora, sem esperar o aviso do app terminar.
-  Future<void> darVezAoLeitorDeTela([
+  Future<void> darVezAoLeitorDeTela(
+    String elemento, [
     Duration duracao = const Duration(seconds: 4),
   ]) async {
+    if (elemento == _ultimoElementoFocado) {
+      debugPrint('[VozGuia] foco TalkBack repetido em "$elemento" (ignorado)');
+      return;
+    }
+    debugPrint(
+      '[VozGuia] foco TalkBack em "$elemento": silêncio de '
+      '${duracao.inSeconds}s',
+    );
+    _ultimoElementoFocado = elemento;
     _silencioAte = DateTime.now().add(duracao);
     await _interromper();
   }
