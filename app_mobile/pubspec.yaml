@@ -38,7 +38,7 @@ dependencies:
   cupertino_icons: ^1.0.8
 
   # Câmera + inferência YOLO nativa com suporte a GPU
-  ultralytics_yolo: ^0.2.0
+  ultralytics_yolo: ^0.7.1
 
   # Síntese de voz nativa Android (Text-to-Speech)
   flutter_tts: ^4.0.2

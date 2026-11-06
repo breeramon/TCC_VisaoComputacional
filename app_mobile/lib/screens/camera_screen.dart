@@ -50,10 +50,6 @@ const _maxDeteccoes = 10;
 // reduz consumo de CPU/bateria em dispositivos fracos
 const _streamingConfig = YOLOStreamingConfig(inferenceFrequency: 15);
 
-// Durante a pausa a câmera continua aberta (ver comentário em _CameraScreenState),
-// então reduz a inferência a 1 por segundo para economizar bateria
-const _streamingConfigPausado = YOLOStreamingConfig(inferenceFrequency: 1);
-
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
 
@@ -76,14 +72,10 @@ class _CameraScreenState extends State<CameraScreen>
   bool _emSegundoPlano = false;
   Configuracoes _config = const Configuracoes();
 
-  // Uma única YOLOView fica montada o tempo todo. No ultralytics_yolo 0.2.0:
-  // - controller.stop() descarta o modelo e os callbacks, e restartCamera()
-  //   religa só a câmera (a detecção não volta);
-  // - cada YOLOView se registra no ciclo de vida da Activity e nunca se
-  //   desregistra; recriar a view deixa "zumbis" que roubam a câmera quando
-  //   o app volta do segundo plano (tela preta ou congelada).
-  // Por isso a pausa só ignora os resultados e reduz a frequência de inferência.
-  // Rever ao atualizar o plugin (0.7.x já remove o observer no dispose).
+  // Uma única YOLOView fica montada o tempo todo. A pausa usa
+  // controller.pause()/resume() (ultralytics_yolo 0.7+): no Android, pause()
+  // desliga a câmera mas mantém o modelo carregado, então a retomada é imediata.
+  // Não usar stop()/restartCamera(): stop() descarta o modelo.
 
   @override
   void initState() {
@@ -97,6 +89,9 @@ class _CameraScreenState extends State<CameraScreen>
       iouThreshold: _iou,
       numItemsThreshold: _maxDeteccoes,
     );
+    // Caixas desenhadas pelo próprio app (_DetectionPainter), não pelo plugin.
+    // O valor é guardado e aplicado quando a câmera nativa inicializa.
+    _yoloController.setShowOverlays(false);
     // Mantém a tela ligada: se ela apagar, a câmera para
     WakelockPlus.enable();
   }
@@ -139,7 +134,7 @@ class _CameraScreenState extends State<CameraScreen>
         _fps = 0;
         _fpsTimer = DateTime.now();
       });
-      await _yoloController.setStreamingConfig(_streamingConfig);
+      await _yoloController.resume();
       _vibracao.retomada();
       _tts.retomar();
       WakelockPlus.enable();
@@ -149,7 +144,7 @@ class _CameraScreenState extends State<CameraScreen>
         _pausado = true;
         _results = [];
       });
-      await _yoloController.setStreamingConfig(_streamingConfigPausado);
+      await _yoloController.pause();
       _vibracao.pausa();
       await _tts.pausar();
       WakelockPlus.disable();
@@ -248,8 +243,6 @@ class _CameraScreenState extends State<CameraScreen>
               confidenceThreshold: limiarConfiancaMinimo,
               iouThreshold: _iou,
               useGpu: _useGpu,
-              showOverlays: false,
-              showNativeUI: false,
               onResult: _onResults,
             ),
           ),
